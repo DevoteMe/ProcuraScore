@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to fetch user profile and roles
   const fetchUserDetails = async (userId: string) => {
       try {
+          console.log("Fetching user details for:", userId); // ADDED LOG
           // Fetch from 'profiles' table or wherever you store additional user info and roles
           // Ensure RLS allows the logged-in user to read their own profile.
           const { data, error } = await supabase
@@ -90,6 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                const authUser = (await supabase.auth.getUser()).data.user;
                setUserDetails({ id: userId, email: authUser?.email, roles: authUser?.app_metadata?.roles || [] });
           }
+          console.log("Successfully fetched user details:", data); // ADDED LOG
 
       } catch (error: any) {
           console.error('Unexpected error fetching user details:', error.message);
@@ -100,14 +102,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     setLoading(true);
+    console.log("AuthContext useEffect triggered"); // ADDED LOG
     // 1. Check for initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session:", session); // ADDED LOG
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-          fetchUserDetails(session.user.id).finally(() => setLoading(false));
+          fetchUserDetails(session.user.id).finally(() => {
+            setLoading(false);
+            console.log("Initial user details fetch complete, loading set to false"); // ADDED LOG
+          });
       } else {
           setLoading(false); // No user, stop loading
+          console.log("No initial user, loading set to false"); // ADDED LOG
       }
     }).catch(error => {
         console.error("Error getting initial session:", error);
@@ -124,11 +132,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(currentUser);
         if (currentUser) {
           setLoading(true); // Start loading when user changes
+          console.log("Auth state changed, fetching user details for:", currentUser.id); // ADDED LOG
           await fetchUserDetails(currentUser.id);
           setLoading(false); // Stop loading after fetching details
+          console.log("Auth state change user details fetch complete, loading set to false"); // ADDED LOG
         } else {
           setUserDetails(null); // Clear details on logout
           setLoading(false); // Stop loading if no user
+          console.log("Auth state changed, no user, loading set to false"); // ADDED LOG
         }
       }
     );
@@ -136,6 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Cleanup listener on unmount
     return () => {
       authListener?.subscription.unsubscribe();
+      console.log("AuthContext useEffect cleanup"); // ADDED LOG
     };
   }, []);
 
