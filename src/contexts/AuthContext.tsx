@@ -35,66 +35,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to fetch user profile and roles
   const fetchUserDetails = async (userId: string) => {
       try {
-          console.log("Fetching user details for:", userId); // ADDED LOG
-          // Fetch from 'profiles' table or wherever you store additional user info and roles
-          // Ensure RLS allows the logged-in user to read their own profile.
+          console.log("Fetching user details for:", userId);
           const { data, error } = await supabase
               .from('profiles') // Assuming a 'profiles' table
-              .select(`
-                  id,
-                  full_name,
-                  avatar_url,
-                  raw_user_meta_data->>'roles' as roles,
-                  tenant_memberships ( tenant_id, role )
-              `) // Adjust select based on your schema
+              .select('id') //  <--  Simplify select
               .eq('id', userId)
-              .single(); // Fetch a single profile matching the user ID
+              .single();
 
           if (error) {
-              // Don't throw, maybe profile doesn't exist yet or RLS issue
               console.warn('Error fetching user details:', error.message);
-              // Set basic details from auth user if profile fetch fails
-              const authUser = (await supabase.auth.getUser()).data.user;
-              setUserDetails({ id: userId, email: authUser?.email, roles: authUser?.app_metadata?.roles || [] });
+              setUserDetails({ id: userId, roles: [] });
               return;
           }
 
           if (data) {
-              // Combine auth email with profile data
-               const authUser = (await supabase.auth.getUser()).data.user;
-               // Ensure roles are parsed correctly (might be JSON string)
-               let parsedRoles = data.roles;
-               if (typeof parsedRoles === 'string') {
-                   try {
-                       parsedRoles = JSON.parse(parsedRoles);
-                   } catch (e) {
-                       console.error("Failed to parse roles from metadata:", e);
-                       parsedRoles = []; // Default to empty array on parse error
-                   }
-               }
-               // Fallback to app_metadata if profile roles are missing/empty
-               if (!parsedRoles || parsedRoles.length === 0) {
-                   parsedRoles = authUser?.app_metadata?.roles || [];
-               }
-
-
-              setUserDetails({
-                  id: data.id,
-                  email: authUser?.email, // Get email from auth session
-                  full_name: data.full_name,
-                  avatar_url: data.avatar_url,
-                  roles: Array.isArray(parsedRoles) ? parsedRoles : [], // Ensure roles is an array
-                  tenant_memberships: data.tenant_memberships || []
-              });
+              console.log("Successfully fetched user details (simplified):", data); // ADDED LOG
+              setUserDetails({ id: data.id, roles: [] }); // Simplified details
           } else {
-               // Handle case where profile doesn't exist but no error occurred
-               const authUser = (await supabase.auth.getUser()).data.user;
-               setUserDetails({ id: userId, email: authUser?.email, roles: authUser?.app_metadata?.roles || [] });
+               setUserDetails({ id: userId, roles: [] });
           }
-          console.log("Successfully fetched user details:", data); // ADDED LOG
 
       } catch (error: any) {
+          console.error('Error in fetchUserDetails catch block:', error.message); // ADDED LOG for catch block errors
           console.error('Unexpected error fetching user details:', error.message);
+      } finally {
           setUserDetails({ id: userId, roles: [] }); // Set minimal details on error
       }
   };
@@ -102,24 +66,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     setLoading(true);
-    console.log("AuthContext useEffect triggered"); // ADDED LOG
-    // 1. Check for initial session
+    console.log("AuthContext useEffect triggered");
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session:", session); // ADDED LOG
+      console.log("Initial session:", session);
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       if (session?.user) {
           fetchUserDetails(session.user.id).finally(() => {
             setLoading(false);
-            console.log("Initial user details fetch complete, loading set to false"); // ADDED LOG
+            console.log("Initial user details fetch complete, loading set to false");
           });
       } else {
-          setLoading(false); // No user, stop loading
-          console.log("No initial user, loading set to false"); // ADDED LOG
+          setLoading(false);
+          setUserDetails(null); // Ensure userDetails is cleared on no session
+          setUser(null); // Ensure user is cleared
+          console.log("No initial user, loading set to false");
       }
     }).catch(error => {
         console.error("Error getting initial session:", error);
-        setLoading(false);
+    }).finally(() => { // ADD THIS FINALLY BLOCK
+        setLoading(false); // Ensure loading is set to false even on getSession error
+        console.log("getSession finally block - setLoading(false)"); // ADDED LOG
     });
 
 
@@ -154,6 +122,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     // State updates are handled by onAuthStateChange listener
+    console.log("signOut function called"); // ADDED LOG
   };
 
   const value = {
