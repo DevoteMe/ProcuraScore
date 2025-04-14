@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
@@ -29,68 +29,57 @@ const ProjectDetails = () => <PlaceholderComponent title="Project Details" />;
 function App() {
   const { session, loading, userDetails } = useAuth(); // Add userDetails from context
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div>Loading application...</div>
-      </div>
-    );
-  }
-
-  // Determine if the user is a Platform Admin
-  // Adjust this logic based on how roles are stored (e.g., in userDetails.app_metadata.roles)
-  const isPlatformAdmin = userDetails?.roles?.includes('Platform_Admin');
-  // console.log("User Details in App:", userDetails); // Debugging roles
-  // console.log("Is Platform Admin:", isPlatformAdmin); // Debugging admin check
-
+  // Wrap the entire app in Suspense
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/auth"
-          element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />}
-        />
+      <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div>Loading application...</div></div>}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/auth"
+            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />}
+          />
 
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-               {session ? <Dashboard key={session.user.id} session={session} /> : null}
-            </ProtectedRoute>
-          }
-        >
-           {/* Nested Routes - Rendered inside Dashboard's <Outlet /> */}
-           <Route index element={<DashboardOverview />} /> {/* Default view */}
+          {/* Protected Dashboard Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                {session ? <Dashboard key={session.user.id} session={session} /> : null}
+              </ProtectedRoute>
+            }
+          >
+            {/* Nested Routes - Rendered inside Dashboard's <Outlet /> */}
+            <Route index element={<DashboardOverview />} /> {/* Default view */}
 
-           {/* Platform Admin Route - Conditionally render AdminPanel */}
-           {isPlatformAdmin && session && (
-             <Route path="admin" element={<AdminPanel user={session.user} />} />
-           )}
-           {/* Keep other admin-related placeholders if they represent different sections */}
-           {/* <Route path="users" element={<UserManagement />} /> */}
-           {/* <Route path="settings" element={<SystemSettings />} /> */}
+            {/* Platform Admin Route - Conditionally render AdminPanel */}
+            {userDetails?.roles?.includes('Platform_Admin') && session && (
+              <Route path="admin" element={<AdminPanel user={session.user} />} />
+            )}
+            {/* Keep other admin-related placeholders if they represent different sections */}
+            {/* <Route path="users" element={<UserManagement />} /> */}
+            {/* <Route path="settings" element={<SystemSettings />} /> */}
 
 
-           {/* Tenant Routes */}
-           <Route path="projects" element={<ProjectList />} />
-           <Route path="projects/new" element={<CreateProject />} />
-           <Route path="projects/:projectId" element={<ProjectDetails />} />
-           <Route path="evaluations" element={<EvaluationList />} />
-           <Route path="team" element={<TeamMemberList />} />
-           <Route path="tenant-settings" element={<TenantSettings />} />
+            {/* Tenant Routes */}
+            <Route path="projects" element={<ProjectList />} />
+            <Route path="projects/new" element={<CreateProject />} />
+            <Route path="projects/:projectId" element={<ProjectDetails />} />
+            <Route path="evaluations" element={<EvaluationList />} />
+            <Route path="team" element={<TeamMemberList />} />
+            <Route path="tenant-settings" element={<TenantSettings />} />
 
-           {/* Fallback for unauthorized admin access or unknown dashboard routes */}
-           <Route path="admin" element={!isPlatformAdmin ? <Navigate to="/dashboard" replace /> : null} />
-           {/* Add more nested routes as needed */}
-           <Route path="*" element={<Navigate to="/dashboard" replace />} /> {/* Redirect unknown dashboard paths to overview */}
-        </Route>
+            {/* Fallback for unauthorized admin access or unknown dashboard routes */}
+            <Route path="admin" element={!userDetails?.roles?.includes('Platform_Admin') ? <Navigate to="/dashboard" replace /> : null} />
+            {/* Add more nested routes as needed */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} /> {/* Redirect unknown dashboard paths to overview */}
+          </Route>
 
-         {/* Redirect unknown top-level paths */}
-         <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
-      </Routes>
+          {/* Redirect unknown top-level paths */}
+          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
+        </Routes>
+      </Suspense>
     </ThemeProvider>
   );
 }
