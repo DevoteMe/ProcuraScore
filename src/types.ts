@@ -1,14 +1,32 @@
-// Create or update a types file (e.g., src/types.ts)
 export interface Tenant {
-  id: string; // Typically UUID
+  id: string;
+  created_at?: string;
   name: string;
-  created_at: string; // ISO timestamp string
-  updated_at?: string; // ISO timestamp string
-  status: 'active' | 'disabled'; // Example status field
-  // Add any other relevant tenant fields from your 'tenants' table
-  // e.g., owner_user_id?: string;
+  owner_id: string;
+  stripe_customer_id?: string | null;
 }
 
-// Add other shared types here if needed
-// export interface Project { ... }
-// export interface License { ... }
+export interface UserDetails {
+  id: string;
+  created_at?: string;
+  email: string;
+  roles?: string[];
+  tenant_memberships?: TenantMembership[];
+  // Add other user-related fields as needed
+}
+
+export interface TenantMembership {
+  tenant_id: string;
+  user_id: string;
+  role: string; // e.g., 'tenant_admin', 'tenant_user'
+}
+
+export interface Project {
+    id: string;
+    created_at?: string;
+    tenant_id: string;
+    name: string;
+    description?: string;
+    status: 'active' | 'inactive' | 'completed';
+    // Add other project-related fields as needed
+}

@@ -5,6 +5,7 @@ import UserManagement from './UserManagement';
 import LicenseAdminView from './LicenseAdminView';
 import PlatformSettings from './PlatformSettings'; // Import new component
 import ImpersonationSection from './ImpersonationSection'; // Extract Impersonation UI
+import Procurement from './Procurement';
 
 interface AdminPanelProps {
   user: User;
@@ -37,6 +38,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user }) => {
       {/* Platform Settings Section */}
       <div className="border-t pt-6">
         <PlatformSettings />
+      </div>
+
+      {/* Procurement Section */}
+      <div className="border-t pt-6">
+        <Procurement />
       </div>
     </div>
   );
