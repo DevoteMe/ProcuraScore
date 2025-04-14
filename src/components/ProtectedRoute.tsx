@@ -62,15 +62,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 export default ProtectedRoute;
 
 /*
-Usage with react-router-dom:
+// Corrected comment block: Example Usage with react-router-dom
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AuthComponent from './components/Auth'; // Assuming Auth component is used for login/signup
 import LandingPage from './components/LandingPage';
-import DashboardPage from './pages/DashboardPage'; // Example page
-import AdminOnlyPage from './pages/AdminOnlyPage'; // Example page
-import TenantAdminPage from './pages/TenantAdminPage'; // Example page
-import ProtectedRoute from './components/ProtectedRoute';
+import DashboardPage from './pages/DashboardPage'; // Example page - Replace with actual Dashboard component
+import AdminOnlyPage from './pages/AdminOnlyPage'; // Example page - Replace with actual Admin component
+import TenantAdminPage from './pages/TenantAdminPage'; // Example page - Replace with actual Tenant Admin component
+// ProtectedRoute is already imported above
 
 function AppRoutes() { // This is essentially what App.tsx now does
   return (
@@ -83,7 +83,7 @@ function AppRoutes() { // This is essentially what App.tsx now does
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              {/* <DashboardPage /> */} {/* Replace with actual Dashboard component */}
             </ProtectedRoute>
           }
         />
@@ -91,7 +91,7 @@ function AppRoutes() { // This is essentially what App.tsx now does
           path="/admin"
           element={
             <ProtectedRoute requireAdmin={true}>
-              <AdminOnlyPage />
+              {/* <AdminOnlyPage /> */} {/* Replace with actual Admin component */}
             </ProtectedRoute>
           }
         />
@@ -99,7 +99,7 @@ function AppRoutes() { // This is essentially what App.tsx now does
           path="/tenant-settings" // Example
           element={
             <ProtectedRoute requireTenantAdmin={true}>
-              <TenantAdminPage />
+              {/* <TenantAdminPage /> */} {/* Replace with actual Tenant Admin component */}
             </ProtectedRoute>
           }
         />
