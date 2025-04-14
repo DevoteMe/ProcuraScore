@@ -1,44 +1,33 @@
 import React from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom'; // Import Outlet
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import AuthComponent from './components/Auth';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './components/theme-provider';
+import DashboardOverview from './components/DashboardOverview';
+import ProjectList from './components/tenant/ProjectList';
+import CreateProject from './components/tenant/CreateProject';
+import AdminPanel from './components/admin/AdminPanel'; // Import AdminPanel
 
-// Placeholder components for nested dashboard routes
-const DashboardOverview = () => <div className="p-6"><h2 className="text-xl font-semibold">Dashboard Overview Content</h2><p>Display summary information here.</p></div>;
-const TenantManagement = () => <div className="p-6"><h2 className="text-xl font-semibold">Tenant Management Content</h2><p>Display tenant list and management tools here.</p></div>;
-const UserManagement = () => <div className="p-6"><h2 className="text-xl font-semibold">User Management Content</h2><p>Display user list and management tools here.</p></div>;
-const SystemSettings = () => <div className="p-6"><h2 className="text-xl font-semibold">System Settings Content</h2><p>Display system-wide settings here.</p></div>;
-const ProjectList = () => <div className="p-6"><h2 className="text-xl font-semibold">Project List Content</h2><p>Display projects for the current tenant here.</p></div>;
-const EvaluationList = () => <div className="p-6"><h2 className="text-xl font-semibold">Evaluation List Content</h2><p>Display evaluations for the current tenant here.</p></div>;
-const TeamMemberList = () => <div className="p-6"><h2 className="text-xl font-semibold">Team Member List Content</h2><p>Display team members for the current tenant here.</p></div>;
-const TenantSettings = () => <div className="p-6"><h2 className="text-xl font-semibold">Tenant Settings Content</h2><p>Display settings specific to the current tenant here.</p></div>;
+// Simple placeholder components for routes not yet implemented
+const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
+  <div className="p-6"><h2 className="text-xl font-semibold">{title}</h2><p>Content for this section will be implemented soon.</p></div>
+);
 
-
-// Layout component for Dashboard routes to render nested content
-const DashboardLayout: React.FC = () => {
-  const { session } = useAuth(); // Get session info if needed for layout/context
-
-  if (!session) return null; // Should be handled by ProtectedRoute, but good practice
-
-  return (
-    // The Dashboard component now contains the Sidebar and Header
-    // Outlet will render the matched nested route component within Dashboard's <main> area
-    // We pass the session down to the main Dashboard component which handles layout
-    <Dashboard key={session.user.id} session={session} />
-    // Note: The actual rendering of nested components needs to happen *inside* Dashboard.tsx
-    // This structure sets up the routing; Dashboard.tsx needs modification to render Outlet.
-    // --- CORRECTION: Dashboard itself IS the layout. Outlet should be rendered *within* Dashboard's main content area. ---
-    // Let's adjust Dashboard.tsx to include <Outlet />
-  );
-};
+// Keep placeholders for routes not directly implemented in this step
+// const TenantManagement = () => <PlaceholderComponent title="Tenant Management" />; // Replaced by AdminPanel section
+// const UserManagement = () => <PlaceholderComponent title="User Management" />; // Replaced by AdminPanel section
+const SystemSettings = () => <PlaceholderComponent title="System Settings" />; // This might be different from Platform Admin Settings
+const EvaluationList = () => <PlaceholderComponent title="Evaluations" />;
+const TeamMemberList = () => <PlaceholderComponent title="Team Members" />;
+const TenantSettings = () => <PlaceholderComponent title="Tenant Settings" />;
+const ProjectDetails = () => <PlaceholderComponent title="Project Details" />;
 
 
 function App() {
-  const { session, loading } = useAuth();
+  const { session, loading, userDetails } = useAuth(); // Add userDetails from context
 
   if (loading) {
     return (
@@ -47,6 +36,12 @@ function App() {
       </div>
     );
   }
+
+  // Determine if the user is a Platform Admin
+  // Adjust this logic based on how roles are stored (e.g., in userDetails.app_metadata.roles)
+  const isPlatformAdmin = userDetails?.roles?.includes('Platform_Admin');
+  // console.log("User Details in App:", userDetails); // Debugging roles
+  // console.log("Is Platform Admin:", isPlatformAdmin); // Debugging admin check
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -63,28 +58,37 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-               {/* DashboardLayout now wraps the nested routes */}
-               {/* We render Dashboard directly as it contains the layout (Sidebar, Header) */}
                {session ? <Dashboard key={session.user.id} session={session} /> : null}
             </ProtectedRoute>
           }
         >
-           {/* Nested Routes - These will render inside Dashboard's <main> via <Outlet /> */}
-           {/* Update Dashboard.tsx to include <Outlet /> in its main content area */}
-           <Route index element={<DashboardOverview />} /> {/* Default view for /dashboard */}
-           {/* Platform Admin Routes (add role checks if needed via ProtectedRoute variants or logic within components) */}
-           <Route path="tenants" element={<TenantManagement />} />
-           <Route path="users" element={<UserManagement />} />
-           <Route path="settings" element={<SystemSettings />} />
+           {/* Nested Routes - Rendered inside Dashboard's <Outlet /> */}
+           <Route index element={<DashboardOverview />} /> {/* Default view */}
+
+           {/* Platform Admin Route - Conditionally render AdminPanel */}
+           {isPlatformAdmin && session && (
+             <Route path="admin" element={<AdminPanel user={session.user} />} />
+           )}
+           {/* Keep other admin-related placeholders if they represent different sections */}
+           {/* <Route path="users" element={<UserManagement />} /> */}
+           {/* <Route path="settings" element={<SystemSettings />} /> */}
+
+
            {/* Tenant Routes */}
            <Route path="projects" element={<ProjectList />} />
+           <Route path="projects/new" element={<CreateProject />} />
+           <Route path="projects/:projectId" element={<ProjectDetails />} />
            <Route path="evaluations" element={<EvaluationList />} />
            <Route path="team" element={<TeamMemberList />} />
            <Route path="tenant-settings" element={<TenantSettings />} />
+
+           {/* Fallback for unauthorized admin access or unknown dashboard routes */}
+           <Route path="admin" element={!isPlatformAdmin ? <Navigate to="/dashboard" replace /> : null} />
            {/* Add more nested routes as needed */}
+           <Route path="*" element={<Navigate to="/dashboard" replace />} /> {/* Redirect unknown dashboard paths to overview */}
         </Route>
 
-         {/* Redirect unknown paths */}
+         {/* Redirect unknown top-level paths */}
          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
       </Routes>
     </ThemeProvider>

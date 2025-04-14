@@ -1,76 +1,89 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building, Users, Settings, FolderKanban, ClipboardCheck, UserCog } from 'lucide-react'; // Import icons
-import { cn } from '@/lib/utils';
-import { Button } from './ui/button'; // Use Button for styling consistency
+import { NavLink } from 'react-router-dom';
+import { Home, FolderKanban, Users, Settings, ShieldCheck, Building, UserCog } from 'lucide-react'; // Added icons
+import classnames from 'classnames';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
-interface SidebarProps {
-  isPlatformAdmin: boolean;
-  tenantRole?: 'tenant_id_admin' | 'tenant_id_user'; // Role within the selected tenant
-}
+const commonLinkClasses = "flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150";
+const inactiveLinkClasses = "text-muted-foreground hover:bg-muted hover:text-foreground";
+const activeLinkClasses = "bg-primary text-primary-foreground"; // Use primary color for active link
 
-const Sidebar: React.FC<SidebarProps> = ({ isPlatformAdmin, tenantRole }) => {
-  const location = useLocation(); // To highlight the active link
+const Sidebar: React.FC = () => {
+  const { userDetails } = useAuth(); // Get user details to check roles
 
-  const commonLinks = [
-    { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    // Add more common links if any
-  ];
-
-  const adminLinks = [
-    ...commonLinks,
-    { to: '/dashboard/tenants', label: 'Tenant Management', icon: Building },
-    { to: '/dashboard/users', label: 'User Management', icon: Users },
-    { to: '/dashboard/settings', label: 'System Settings', icon: Settings }, // Placeholder
-  ];
-
-  const tenantAdminLinks = [
-    ...commonLinks,
-    { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
-    { to: '/dashboard/evaluations', label: 'Evaluations', icon: ClipboardCheck },
-    { to: '/dashboard/team', label: 'Team Members', icon: UserCog },
-    { to: '/dashboard/tenant-settings', label: 'Tenant Settings', icon: Settings }, // Placeholder
-  ];
-
-  const tenantUserLinks = [
-    ...commonLinks,
-    { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
-    { to: '/dashboard/evaluations', label: 'Evaluations', icon: ClipboardCheck },
-  ];
-
-  let linksToShow = commonLinks; // Default
-
-  if (isPlatformAdmin) {
-    linksToShow = adminLinks;
-  } else if (tenantRole === 'tenant_id_admin') {
-    linksToShow = tenantAdminLinks;
-  } else if (tenantRole === 'tenant_id_user') {
-    linksToShow = tenantUserLinks;
-  }
+  // Determine roles - adjust based on your actual role storage
+  const isPlatformAdmin = userDetails?.roles?.includes('Platform_Admin');
+  // Example: Check if user is an admin of *any* tenant listed in their memberships
+  const isTenantAdmin = userDetails?.tenant_memberships?.some(m => m.role.includes('_admin'));
 
   return (
-    <aside className="w-64 border-r bg-background p-4 flex flex-col">
-      <nav className="flex flex-col space-y-2">
-        {linksToShow.map((link) => {
-          const isActive = location.pathname === link.to || (link.to !== '/dashboard' && location.pathname.startsWith(link.to));
-          return (
-            <Button
-              key={link.to}
-              variant={isActive ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
+    <aside className="w-64 bg-background border-r border-border p-4 flex flex-col">
+      <div className="mb-6">
+        {/* Replace with your actual logo or app name */}
+        <h1 className="text-2xl font-bold text-center text-primary">ProcuraScore</h1>
+      </div>
+      <nav className="flex-grow space-y-2">
+        {/* Common Routes */}
+        <NavLink
+          to="/dashboard"
+          end // Use 'end' for the index route
+          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+        >
+          <Home className="mr-3 h-5 w-5" />
+          Overview
+        </NavLink>
+
+        {/* Tenant User/Admin Routes */}
+        <NavLink
+          to="/dashboard/projects"
+          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+        >
+          <FolderKanban className="mr-3 h-5 w-5" />
+          Projects
+        </NavLink>
+        <NavLink
+          to="/dashboard/evaluations"
+          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+        >
+          <ShieldCheck className="mr-3 h-5 w-5" />
+          Evaluations
+        </NavLink>
+
+        {/* Tenant Admin Specific Routes */}
+        {isTenantAdmin && (
+          <>
+            <NavLink
+              to="/dashboard/team"
+              className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
             >
-              <Link to={link.to}>
-                <link.icon className="mr-2 h-4 w-4" />
-                {link.label}
-              </Link>
-            </Button>
-          );
-        })}
+              <Users className="mr-3 h-5 w-5" />
+              Team Members
+            </NavLink>
+            <NavLink
+              to="/dashboard/tenant-settings"
+              className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+            >
+              <Settings className="mr-3 h-5 w-5" />
+              Tenant Settings
+            </NavLink>
+          </>
+        )}
+
+        {/* Platform Admin Specific Routes */}
+        {isPlatformAdmin && (
+          <NavLink
+            to="/dashboard/admin"
+            className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+          >
+            <UserCog className="mr-3 h-5 w-5" />
+            Platform Admin
+          </NavLink>
+        )}
+
       </nav>
-      {/* Add user profile/logout section at the bottom if desired */}
       <div className="mt-auto">
-        {/* Placeholder for potential future elements like user profile quick view */}
+        {/* Optional: Footer links or user info */}
+        {/* <p className="text-xs text-muted-foreground text-center">© 2024 ProcuraScore</p> */}
       </div>
     </aside>
   );
