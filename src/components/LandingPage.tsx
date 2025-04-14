@@ -1,11 +1,12 @@
 import React from 'react';
-import AuthComponent from './Auth';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { CheckCircle } from 'lucide-react';
-import { Button } from './ui/button'; // Import Button for potential future use
+// Removed AuthComponent import as it's no longer directly used here
+// import AuthComponent from './Auth';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { Button } from './ui/button';
 
 const LandingPage: React.FC = () => {
-  console.log("Rendering LandingPage component with Auth in header...");
+  console.log("Rendering LandingPage component with Pricing section...");
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -17,12 +18,9 @@ const LandingPage: React.FC = () => {
             <span className="font-bold inline-block">ProcuraScore</span>
           </a>
           <nav className="flex items-center gap-4">
-             {/* Can add navigation links here later if needed */}
-             {/* <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Features</a> */}
-             {/* Simple Auth Trigger - Adjust styling as needed */}
-             {/* We'll place the full Auth component below the hero for now,
-                 but you could trigger a modal or navigate to a dedicated auth page from here */}
-             <a href="#auth">
+             {/* The href="#auth" currently points nowhere, but keeps the button.
+                 We can update this later to trigger a modal or go to a login page. */}
+             <a href="#auth"> {/* Consider changing this href later */}
                 <Button variant="outline" size="sm">Login / Sign Up</Button>
              </a>
           </nav>
@@ -41,9 +39,9 @@ const LandingPage: React.FC = () => {
               <p className="text-lg text-muted-foreground md:text-xl">
                 Streamline your tender evaluation process with powerful tools and insights.
               </p>
-              {/* Optional: Add a Call to Action Button linking to Auth section */}
+              {/* Optional: Link this button to the pricing section */}
               <Button size="lg" asChild>
-                <a href="#auth">Get Started</a>
+                <a href="#pricing">Get Started</a>
               </Button>
             </div>
           </div>
@@ -56,7 +54,7 @@ const LandingPage: React.FC = () => {
               Why Choose ProcuraScore?
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1 */}
+              {/* Feature Cards remain the same */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -70,7 +68,6 @@ const LandingPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Feature 2 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -84,7 +81,6 @@ const LandingPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Feature 3 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -98,7 +94,6 @@ const LandingPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Feature 4 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -112,7 +107,6 @@ const LandingPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Feature 5 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -126,7 +120,6 @@ const LandingPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Feature 6 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -144,7 +137,78 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Authentication Section - Kept lower on the page for now */}
+        {/* Pricing Section */}
+        <section id="pricing" className="py-16 md:py-24 lg:py-32 bg-muted/40">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold text-center mb-4 text-foreground">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
+              Choose the plan that fits your organization's needs. Get started for free or unlock advanced features.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Free Tier */}
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle>Free</CardTitle>
+                  <CardDescription>For individuals or small teams getting started.</CardDescription>
+                  <p className="text-4xl font-bold pt-4">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-2">
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> 1 Project</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 3 Users</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Basic Scoring</p>
+                  <p className="flex items-center gap-2"><XCircle className="h-5 w-5 text-red-500" /> Limited Collaboration</p>
+                  <p className="flex items-center gap-2"><XCircle className="h-5 w-5 text-red-500" /> Basic Support</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="w-full" disabled>Coming Soon</Button> {/* Replace with actual sign-up link/action */}
+                </CardFooter>
+              </Card>
+
+              {/* Pro Tier (Example) */}
+              <Card className="flex flex-col border-primary ring-2 ring-primary shadow-lg">
+                 <CardHeader>
+                  <CardTitle>Pro</CardTitle>
+                  <CardDescription>For growing teams needing more power and collaboration.</CardDescription>
+                   <p className="text-4xl font-bold pt-4">$49<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-2">
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 10 Projects</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 20 Users</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Advanced Scoring & Weighting</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Enhanced Collaboration Tools</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Priority Support</p>
+                </CardContent>
+                <CardFooter>
+                   <Button className="w-full" disabled>Coming Soon</Button> {/* Replace with actual sign-up link/action */}
+                </CardFooter>
+              </Card>
+
+              {/* Enterprise Tier (Example) */}
+              <Card className="flex flex-col">
+                 <CardHeader>
+                  <CardTitle>Enterprise</CardTitle>
+                  <CardDescription>For large organizations with custom needs.</CardDescription>
+                   <p className="text-4xl font-bold pt-4">Custom</p>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-2">
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Unlimited Projects</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Unlimited Users</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Custom Integrations</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Single Sign-On (SSO)</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Dedicated Account Manager</p>
+                </CardContent>
+                <CardFooter>
+                   <Button variant="outline" className="w-full" disabled>Contact Sales</Button> {/* Replace with actual contact link/action */}
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* REMOVED Authentication Section */}
+        {/*
         <section id="auth" className="py-16 md:py-24 lg:py-32 bg-muted/40">
           <div className="container px-4 md:px-6">
             <div className="max-w-md mx-auto">
@@ -153,6 +217,7 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
         </section>
+        */}
       </main>
 
       {/* Footer */}
