@@ -3,6 +3,58 @@ import { Link } from 'react-router-dom'; // Import Link
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from './ui/button';
+import { cn } from '../lib/utils';
+
+// Define pricing plans data
+const pricingPlans = [
+  {
+    title: 'Free',
+    description: 'For individuals or small teams getting started.',
+    price: '$0',
+    priceDetails: '/month',
+    features: [
+      '1 Project',
+      'Up to 3 Users',
+      'Basic Scoring',
+      { name: 'Limited Collaboration', negative: true },
+      { name: 'Basic Support', negative: true },
+    ],
+    ctaText: 'Coming Soon',
+    ctaDisabled: true,
+  },
+  {
+    title: 'Pro',
+    description: 'For growing teams needing more power and collaboration.',
+    price: '$49',
+    priceDetails: '/month',
+    features: [
+      'Up to 10 Projects',
+      'Up to 20 Users',
+      'Advanced Scoring & Weighting',
+      'Enhanced Collaboration Tools',
+      'Priority Support',
+    ],
+    ctaText: 'Coming Soon',
+    ctaDisabled: true,
+    highlighted: true, // Example of a highlighted plan
+  },
+  {
+    title: 'Enterprise',
+    description: 'For large organizations with custom needs.',
+    price: 'Custom',
+    priceDetails: '',
+    features: [
+      'Unlimited Projects',
+      'Unlimited Users',
+      'Custom Integrations',
+      'Single Sign-On (SSO)',
+      'Dedicated Account Manager',
+    ],
+    ctaText: 'Contact Sales',
+    ctaDisabled: true,
+  },
+];
+
 
 const LandingPage: React.FC = () => {
   console.log("Rendering LandingPage component with Pricing section...");
@@ -28,7 +80,7 @@ const LandingPage: React.FC = () => {
       {/* Main Content */}
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-background py-20 md:py-32">
+        <section className="flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-background py-20 md:py-32 animate-in fade-in">
           <div className="container px-4 md:px-6 text-center">
             <div className="max-w-3xl mx-auto space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-foreground">
@@ -46,7 +98,7 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-16 md:py-24 bg-background">
+        <section id="features" className="py-16 md:py-24 bg-background animate-in fade-in">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
               Why Choose ProcuraScore?
@@ -136,7 +188,7 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-16 md:py-24 lg:py-32 bg-muted/40">
+        <section id="pricing" className="py-16 md:py-24 lg:py-32 bg-muted/40 animate-in fade-in">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold text-center mb-4 text-foreground">
               Simple, Transparent Pricing
@@ -145,62 +197,32 @@ const LandingPage: React.FC = () => {
               Choose the plan that fits your organization's needs. Get started for free or unlock advanced features.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* Free Tier */}
-              <Card className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>Free</CardTitle>
-                  <CardDescription>For individuals or small teams getting started.</CardDescription>
-                  <p className="text-4xl font-bold pt-4">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-2">
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> 1 Project</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 3 Users</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Basic Scoring</p>
-                  <p className="flex items-center gap-2"><XCircle className="h-5 w-5 text-red-500" /> Limited Collaboration</p>
-                  <p className="flex items-center gap-2"><XCircle className="h-5 w-5 text-red-500" /> Basic Support</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full" disabled>Coming Soon</Button> {/* Replace with actual sign-up link/action */}
-                </CardFooter>
-              </Card>
-
-              {/* Pro Tier (Example) */}
-              <Card className="flex flex-col border-primary ring-2 ring-primary shadow-lg">
-                 <CardHeader>
-                  <CardTitle>Pro</CardTitle>
-                  <CardDescription>For growing teams needing more power and collaboration.</CardDescription>
-                   <p className="text-4xl font-bold pt-4">$49<span className="text-sm font-normal text-muted-foreground">/month</span></p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-2">
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 10 Projects</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Up to 20 Users</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Advanced Scoring & Weighting</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Enhanced Collaboration Tools</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Priority Support</p>
-                </CardContent>
-                <CardFooter>
-                   <Button className="w-full" disabled>Coming Soon</Button> {/* Replace with actual sign-up link/action */}
-                </CardFooter>
-              </Card>
-
-              {/* Enterprise Tier (Example) */}
-              <Card className="flex flex-col">
-                 <CardHeader>
-                  <CardTitle>Enterprise</CardTitle>
-                  <CardDescription>For large organizations with custom needs.</CardDescription>
-                   <p className="text-4xl font-bold pt-4">Custom</p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-2">
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Unlimited Projects</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Unlimited Users</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Custom Integrations</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Single Sign-On (SSO)</p>
-                  <p className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Dedicated Account Manager</p>
-                </CardContent>
-                <CardFooter>
-                   <Button variant="outline" className="w-full" disabled>Contact Sales</Button> {/* Replace with actual contact link/action */}
-                </CardFooter>
-              </Card>
+              {pricingPlans.map((plan, index) => (
+                <Card key={index} className={cn("flex flex-col", plan.highlighted && "border-primary ring-2 ring-primary shadow-lg")}>
+                  <CardHeader>
+                    <CardTitle>{plan.title}</CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                    <p className="text-4xl font-bold pt-4">{plan.price}<span className="text-sm font-normal text-muted-foreground">{plan.priceDetails}</span></p>
+                  </CardHeader>
+                  <CardContent className="flex-grow space-y-2">
+                    {plan.features.map((feature, featureIndex) => (
+                      <p key={featureIndex} className="flex items-center gap-2">
+                        {typeof feature === 'string' ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : feature.negative ? (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        ) : (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        )}
+                        <span>{typeof feature === 'string' ? feature : feature.name}</span>
+                      </p>
+                    ))}
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full" disabled={plan.ctaDisabled}>{plan.ctaText}</Button>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
@@ -210,7 +232,7 @@ const LandingPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t bg-background">
+      <footer className="py-6 border-t bg-background animate-in fade-in">
         <div className="container px-4 md:px-6 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} ProcuraScore. All rights reserved.
         </div>

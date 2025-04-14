@@ -108,10 +108,10 @@ const ProjectList: React.FC = () => {
       {!loading && !error && projects.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
-            <Card key={project.id}>
+            <Card key={project.id} className="hover:cursor-pointer">
               <CardHeader>
                 <CardTitle className="text-lg">
-                  {/* TODO: Link to project details page */}
+                  {/* Link to project details page */}
                   <Link to={`/dashboard/projects/${project.id}`} className="hover:underline">
                     {project.name}
                   </Link>

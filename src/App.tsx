@@ -10,6 +10,7 @@ import DashboardOverview from './components/DashboardOverview';
 import ProjectList from './components/tenant/ProjectList';
 import CreateProject from './components/tenant/CreateProject';
 import AdminPanel from './components/admin/AdminPanel'; // Import AdminPanel
+import ProjectDetails from './components/ProjectDetails'; // Import ProjectDetails
 
 // Simple placeholder components for routes not yet implemented
 const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
@@ -23,7 +24,7 @@ const SystemSettings = () => <PlaceholderComponent title="System Settings" />; /
 const EvaluationList = () => <PlaceholderComponent title="Evaluations" />;
 const TeamMemberList = () => <PlaceholderComponent title="Team Members" />;
 const TenantSettings = () => <PlaceholderComponent title="Tenant Settings" />;
-const ProjectDetails = () => <PlaceholderComponent title="Project Details" />;
+// const ProjectDetails = () => <PlaceholderComponent title="Project Details" />; // No longer placeholder
 
 
 function App() {
