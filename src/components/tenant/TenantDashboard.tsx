@@ -11,9 +11,10 @@ interface TenantDashboardProps {
 const TenantDashboard: React.FC<TenantDashboardProps> = ({ user, tenantId, role }) => {
   return (
     <div className="p-4 border rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">Tenant Dashboard (ID: {tenantId.substring(0,8)}...)</h2>
+      <h2 className="text-xl font-semibold mb-4">Tenant Admin Dashboard (ID: {tenantId.substring(0,8)}...)</h2>
       <p>User: {user.email}</p>
       <p>Role in this tenant: {role}</p>
+      <p className="text-muted-foreground">Tenant Admin Panel - Features coming soon.</p>
 
       {/* Add Tenant-specific features based on role */}
       {/* - Project List/Management */}

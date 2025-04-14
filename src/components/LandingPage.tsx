@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
+import { motion } from 'framer-motion'; // Import motion from framer-motion
 
 // Define pricing plans data
 const pricingPlans = [
