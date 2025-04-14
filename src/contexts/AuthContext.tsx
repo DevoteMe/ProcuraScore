@@ -121,8 +121,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    // State updates are handled by onAuthStateChange listener
-    console.log("signOut function called"); // ADDED LOG
+    setSession(null); // Explicitly set session to null on signOut
+    setUser(null);     // Explicitly set user to null
+    setUserDetails(null); // Clear user details as well
+    console.log("signOut function called - session, user, userDetails set to null"); // ADDED LOG
   };
 
   const value = {

@@ -70,7 +70,7 @@ const Sidebar: React.FC = () => {
         )}
 
         {/* Platform Admin Specific Routes */}
-        {isPlatformAdmin && (
+        {isPlatformAdmin && ( // CHECK THIS CONDITION
           <NavLink
             to="/dashboard/admin"
             className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
