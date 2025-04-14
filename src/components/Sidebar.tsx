@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, FolderKanban, Users, Settings, ShieldCheck, Building, UserCog } from 'lucide-react'; // Added icons
-import classnames from 'classnames';
+import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const commonLinkClasses = "flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150";
@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
         <NavLink
           to="/dashboard"
           end // Use 'end' for the index route
-          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+          className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
         >
           <Home className="mr-3 h-5 w-5" />
           Overview
@@ -36,14 +36,14 @@ const Sidebar: React.FC = () => {
         {/* Tenant User/Admin Routes */}
         <NavLink
           to="/dashboard/projects"
-          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+          className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
         >
           <FolderKanban className="mr-3 h-5 w-5" />
           Projects
         </NavLink>
         <NavLink
           to="/dashboard/evaluations"
-          className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+          className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
         >
           <ShieldCheck className="mr-3 h-5 w-5" />
           Evaluations
@@ -54,14 +54,14 @@ const Sidebar: React.FC = () => {
           <>
             <NavLink
               to="/dashboard/team"
-              className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+              className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
             >
               <Users className="mr-3 h-5 w-5" />
               Team Members
             </NavLink>
             <NavLink
               to="/dashboard/tenant-settings"
-              className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+              className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
             >
               <Settings className="mr-3 h-5 w-5" />
               Tenant Settings
@@ -73,7 +73,7 @@ const Sidebar: React.FC = () => {
         {isPlatformAdmin && (
           <NavLink
             to="/dashboard/admin"
-            className={({ isActive }) => classnames(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+            className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
           >
             <UserCog className="mr-3 h-5 w-5" />
             Platform Admin
