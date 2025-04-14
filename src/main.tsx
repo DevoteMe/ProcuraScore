@@ -1,13 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'; // Import BrowserRouter
 import App from './App.tsx'
 import './index.css'
-import { AuthProvider } from './contexts/AuthContext.tsx' // Import AuthProvider
+import { AuthProvider } from './contexts/AuthContext.tsx'; // Ensure AuthProvider is imported
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider> {/* Wrap App with AuthProvider */}
-      <App />
-    </AuthProvider>
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter> {/* Wrap App with BrowserRouter */}
+      <AuthProvider> {/* AuthProvider should be inside BrowserRouter or vice-versa, here it's inside */}
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
 )

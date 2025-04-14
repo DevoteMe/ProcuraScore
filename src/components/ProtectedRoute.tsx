@@ -18,13 +18,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
 
   if (loading) {
-    return <div>Checking authentication...</div>; // Or a loading spinner
+    return (
+       <div className="flex justify-center items-center min-h-screen">
+         <div>Checking authentication...</div> {/* Or a loading spinner */}
+       </div>
+    );
   }
 
   if (!session) {
     // User not logged in, redirect to login page
     // Pass the current location to redirect back after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to /auth instead of /login
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Check for Platform Admin requirement
@@ -41,6 +46,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/dashboard" replace />; // Or tenant selection page
     }
     const currentMembership = memberships.find(m => m.tenant_id === selectedTenantId);
+    // Ensure role check matches your defined roles (e.g., 'tenant_admin' or 'tenant_id_admin')
+    // Assuming 'tenant_id_admin' based on previous context
     if (currentMembership?.role !== 'tenant_id_admin') {
         console.warn(`Access denied: Tenant Admin role required for tenant ${selectedTenantId}. User role: ${currentMembership?.role}`);
         // Redirect to tenant dashboard or unauthorized page
@@ -58,17 +65,20 @@ export default ProtectedRoute;
 Usage with react-router-dom:
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import AdminOnlyPage from './pages/AdminOnlyPage';
-import TenantAdminPage from './pages/TenantAdminPage';
+import AuthComponent from './components/Auth'; // Assuming Auth component is used for login/signup
+import LandingPage from './components/LandingPage';
+import DashboardPage from './pages/DashboardPage'; // Example page
+import AdminOnlyPage from './pages/AdminOnlyPage'; // Example page
+import TenantAdminPage from './pages/TenantAdminPage'; // Example page
 import ProtectedRoute from './components/ProtectedRoute';
 
-function AppRoutes() {
+function AppRoutes() { // This is essentially what App.tsx now does
   return (
-    <BrowserRouter>
+    // BrowserRouter is usually in main.tsx or index.tsx
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthComponent />} /> // Public auth route handled in App.tsx logic
+
         <Route
           path="/dashboard"
           element={
@@ -95,7 +105,6 @@ function AppRoutes() {
         />
         {/* Other routes */}
       </Routes>
-    </BrowserRouter>
   );
 }
 

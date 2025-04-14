@@ -1,6 +1,5 @@
 import React from 'react';
-// Removed AuthComponent import as it's no longer directly used here
-// import AuthComponent from './Auth';
+import { Link } from 'react-router-dom'; // Import Link
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from './ui/button';
@@ -18,11 +17,10 @@ const LandingPage: React.FC = () => {
             <span className="font-bold inline-block">ProcuraScore</span>
           </a>
           <nav className="flex items-center gap-4">
-             {/* The href="#auth" currently points nowhere, but keeps the button.
-                 We can update this later to trigger a modal or go to a login page. */}
-             <a href="#auth"> {/* Consider changing this href later */}
+             {/* Use Link component to navigate to the /auth route */}
+             <Link to="/auth">
                 <Button variant="outline" size="sm">Login / Sign Up</Button>
-             </a>
+             </Link>
           </nav>
         </div>
       </header>
@@ -208,16 +206,7 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* REMOVED Authentication Section */}
-        {/*
-        <section id="auth" className="py-16 md:py-24 lg:py-32 bg-muted/40">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-md mx-auto">
-               <h2 className="text-2xl font-semibold text-center mb-6 text-foreground">Login or Sign Up</h2>
-              <AuthComponent />
-            </div>
-          </div>
-        </section>
-        */}
+        {/* ... */}
       </main>
 
       {/* Footer */}
