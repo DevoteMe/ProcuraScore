@@ -8,10 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Users, Building, FolderKanban, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
-// Remove local interfaces if profile/memberships are primarily handled by AuthContext
-// interface UserProfile { ... }
-// interface TenantMembership { ... }
-
 // Define the context type expected by child routes via Outlet
 interface DashboardOutletContext {
   isPlatformAdmin: boolean;
@@ -192,108 +188,6 @@ const Dashboard: React.FC = () => {
   );
 };
 
-
-// Example of how DashboardOverview (or other child routes) can access context
-// Make sure DashboardOverview is updated to use this context structure if needed.
-/*
-import { useOutletContext } from 'react-router-dom';
-
-interface DashboardContext { // Match the type defined in Dashboard
-  isPlatformAdmin: boolean;
-  selectedTenantId: string | null;
-  tenantRole?: string;
-}
-
-const DashboardOverview = () => {
-  const context = useOutletContext<DashboardContext>(); // Use the specific context type
-
-  // Fetch stats here based on context.isPlatformAdmin or context.selectedTenantId
-  // const [stats, setStats] = useState(...);
-  // useEffect(() => { fetch stats... }, [context.isPlatformAdmin, context.selectedTenantId]);
-
-  // Mock stats for demonstration:
-  const platformStats = { totalTenants: 15, totalUsers: 120, activeProjects: 55 };
-  const tenantStats = { activeProjects: 5, pendingTasks: 3, teamMembers: 8 };
-
-
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4 text-foreground">Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {context.isPlatformAdmin ? (
-          <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Tenants</CardTitle>
-                <Building className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{platformStats.totalTenants}</div>
-              </CardContent>
-            </Card>
-             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{platformStats.totalUsers}</div>
-              </CardContent>
-            </Card>
-             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Projects (All)</CardTitle>
-                <FolderKanban className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{platformStats.activeProjects}</div>
-              </CardContent>
-            </Card>
-          </>
-        ) : context.selectedTenantId ? (
-           <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-                <FolderKanban className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.activeProjects}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.pendingTasks}</div>
-              </CardContent>
-            </Card>
-             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.teamMembers}</div>
-              </CardContent>
-            </Card>
-           </>
-        ) : (
-           <div className="col-span-full text-center text-muted-foreground p-6">
-              <p>No tenant selected or assigned.</p>
-           </div>
-        )}
-      </div>
-       <div className="mt-6 bg-card p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2 text-card-foreground">Recent Activity</h3>
-          <p className="text-sm text-muted-foreground">Activity feed or quick links could go here...</p>
-          {/* Placeholder for activity items */}
-       </div>
-    </div>
-  );
-};
-*/
+// Removed the problematic block comment that contained the DashboardOverview example
 
 export default Dashboard;
