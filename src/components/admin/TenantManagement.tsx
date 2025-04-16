@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // Import Input
 
 // Define a type for the tenant data we expect from the Edge Function
 interface Tenant {
@@ -20,66 +21,64 @@ const TenantManagement: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState(''); // State for search term
 
   const fetchTenants = useCallback(async () => {
-    if (!session) {
-      setError("Not authenticated.");
-      setLoading(false);
-      return;
-    }
-
+    // Auth bypass is now handled within the Edge Function itself
     setLoading(true);
     setError(null);
     console.log("Fetching tenants via Edge Function...");
 
+    const headers: HeadersInit = {
+       'Content-Type': 'application/json',
+    };
+    // Only add auth header if session exists (for future use)
+    if (session) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     try {
-      // Call the Edge Function
       const { data, error: functionError } = await supabase.functions.invoke('admin-list-tenants', {
-         // Functions invoked client-side are typically POST
          method: 'POST',
-         headers: {
-            // Pass the Authorization header for the function to verify the user
-            // Content-Type is implicitly application/json by default
-            Authorization: `Bearer ${session.access_token}`,
-         }
-         // No body needed for this function call
+         headers: headers,
       });
 
       if (functionError) {
         console.error("Edge Function invocation error:", functionError);
-        // Try to parse a more specific error from the function response if available
         let message = `Failed to invoke tenant list function: ${functionError.message}`;
-        if (functionError.context && typeof functionError.context.json === 'function') {
-            try {
-                const errorJson = await functionError.context.json();
-                message = `Function Error: ${errorJson.error || functionError.message}`;
-            } catch (parseError) {
-                console.error("Failed to parse error JSON from function context:", parseError);
-            }
-        }
+         if (functionError.context && typeof functionError.context.json === 'function') {
+             try {
+                 const errorJson = await functionError.context.json();
+                 message = `Function Error: ${errorJson.error || functionError.message}`;
+             } catch (parseError) {
+                 console.error("Failed to parse error JSON:", parseError);
+             }
+         }
         setError(message);
         setTenants([]);
       } else if (data && data.tenants) {
-        console.log("Tenants fetched successfully:", data.tenants);
         setTenants(data.tenants as Tenant[]);
       } else {
-         console.log("No tenants found or unexpected data structure:", data);
          setError("Received unexpected data structure from the server.");
          setTenants([]);
       }
     } catch (catchError: any) {
-      console.error("Error calling Edge Function:", catchError);
       setError(`An unexpected error occurred: ${catchError.message}`);
       setTenants([]);
     } finally {
       setLoading(false);
-      console.log("Finished fetching tenants.");
     }
-  }, [session]); // Depend on session
+  }, [session]);
 
   useEffect(() => {
     fetchTenants();
-  }, [fetchTenants]); // Fetch when the function reference changes (effectively on session change)
+  }, [fetchTenants]);
+
+  // --- Filtering Logic ---
+  const filteredTenants = tenants.filter(tenant =>
+    (tenant.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    tenant.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // --- Action Handlers (Placeholders) ---
   const handleViewTenantDetails = (tenantId: string) => {
@@ -94,9 +93,19 @@ const TenantManagement: React.FC = () => {
 
   return (
     <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
+       {/* Header with Search and Create Button */}
+       <div className="flex justify-between items-center gap-4">
          <h1 className="text-2xl font-semibold">Tenant Management</h1>
-         <Button onClick={handleCreateTenant}>Create New Tenant</Button>
+         <div className="flex items-center gap-2">
+             <Input
+                placeholder="Search tenants by name or ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-xs"
+                disabled={loading}
+             />
+             <Button onClick={handleCreateTenant} disabled={loading}>Create New Tenant</Button>
+          </div>
       </div>
 
       <Card>
@@ -106,13 +115,13 @@ const TenantManagement: React.FC = () => {
           {error && (
             <Alert variant="destructive" className="mt-4">
               <Terminal className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
+              <AlertTitle>Error Fetching Tenants</AlertTitle> { /* Updated Title */ }
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
         </CardHeader>
         <CardContent>
-          {loading && <p>Loading tenants...</p>}
+          {loading && <p className="text-center py-4">Loading tenants...</p>} { /* Centered Loading */ }
           {!loading && !error && (
             <Table>
               <TableHeader>
@@ -125,8 +134,8 @@ const TenantManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tenants.length > 0 ? (
-                  tenants.map((tenant) => (
+                {filteredTenants.length > 0 ? (
+                  filteredTenants.map((tenant) => (
                     <TableRow key={tenant.id}>
                       <TableCell className="font-medium">{tenant.name || '(No Name)'}</TableCell>
                       <TableCell>{tenant.id}</TableCell>
@@ -137,6 +146,7 @@ const TenantManagement: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewTenantDetails(tenant.id)}
+                          disabled={loading}
                         >
                           View Details
                         </Button>
@@ -146,8 +156,9 @@ const TenantManagement: React.FC = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                      No tenants found.
+                    <TableCell colSpan={5} className="text-center py-4">
+                      { /* Improved empty state message */ }
+                      {loading ? '' : (searchTerm ? 'No tenants found matching your search.' : 'No tenants found.')}
                     </TableCell>
                   </TableRow>
                 )}
