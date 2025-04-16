@@ -1,15 +1,23 @@
 // Admin Protected Route: Checks if user is logged in AND is a Platform Admin
 import React, { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AdminProtectedRouteProps {
-  children: ReactNode;
+  // children?: ReactNode; // Remove direct children prop if using Outlet
 }
 
-const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
+// Adjusted to work as a Layout Route component in React Router v6
+const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = () => {
   const { session, loading, isPlatformAdmin } = useAuth();
   const location = useLocation();
+
+  // --- Development Bypass ---
+  if (import.meta.env.DEV) {
+    console.warn('[AdminProtectedRoute] Development mode: Bypassing auth and admin checks.');
+    return <Outlet />; // Render nested routes
+  }
+  // --- End Development Bypass ---
 
   if (loading) {
     return (
@@ -27,14 +35,14 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) =
 
   if (!isPlatformAdmin) {
     // User is logged in but NOT a platform admin, redirect to user dashboard
-    // Or potentially show an "Access Denied" page specific to admin area?
-    // For now, redirecting to user dashboard is safer.
     console.warn("[AdminProtectedRoute] Access denied: Not a Platform Admin. Redirecting to /dashboard.");
+    // Redirect to user dashboard or a specific "Access Denied" page for admins?
+    // return <Navigate to="/access-denied-admin" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
-  // User is logged in AND is a Platform Admin
-  return <>{children}</>;
+  // User is logged in AND is a Platform Admin, render nested routes via Outlet
+  return <Outlet />;
 };
 
 export default AdminProtectedRoute;
