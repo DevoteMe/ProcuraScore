@@ -5,7 +5,6 @@ import LandingPage from './components/LandingPage';
 import AuthComponent from './components/Auth';
 // Layouts
 import UserLayout from './components/layouts/UserLayout';
-import AdminLayout from './components/layouts/AdminLayout';
 // Protected Route Variants
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
@@ -22,19 +21,20 @@ const SubscriptionManagement = () => <div className="p-6"><h2>Subscription & Bil
 const TenantSettings = () => <div className="p-6"><h2>Tenant Settings</h2><p>Configure your tenant settings here.</p></div>;
 
 // --- Admin Section Components ---
-import AdminLogin from './components/admin/AdminLogin'; // New Admin Login Component
-import AdminDashboard from './components/admin/AdminDashboard';
-import TenantList from './components/admin/TenantList';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import TenantManagement from './components/admin/TenantManagement';
 import UserManagement from './components/admin/UserManagement';
-// Placeholders for Admin Section
-const AdminLicenseManagement = () => <div className="p-6"><h2>License Management</h2><p>View and manage platform licenses.</p></div>;
-const AdminProcurement = () => <div className="p-6"><h2>Procurement / Stripe Products</h2><p>View Stripe product configuration.</p></div>;
-const AdminPlatformSettings = () => <div className="p-6"><h2>Platform Settings</h2><p>Configure global platform settings.</p></div>;
-const AdminApiStatus = () => <div className="p-6"><h2>API Status</h2><p>View status of integrations.</p></div>;
-
+import LicenseManagement from './components/admin/LicenseManagement';
+import AdminSettings from './components/admin/AdminSettings';
 
 function App() {
-  const { session, loading, isPlatformAdmin } = useAuth(); // Added isPlatformAdmin here
+  const { session, loading, isPlatformAdmin } = useAuth();
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen"><div>Loading application...</div></div>;
+  }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -44,19 +44,19 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/auth"
-            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />} // Regular user login
+            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />}
           />
           <Route
-            path="/admin/login" // New Admin Login Route
-            element={!session || !isPlatformAdmin ? <AdminLogin /> : <Navigate to="/admin" replace />} // Show login only if not logged in as admin
+            path="/admin/login"
+            element={!session || !isPlatformAdmin ? <AdminLoginPage /> : <Navigate to="/admin" replace />}
           />
 
           {/* User Dashboard Routes */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute> {/* Standard protection: must be logged in */}
-                <UserLayout /> {/* User specific layout */}
+              <ProtectedRoute>
+                <UserLayout />
               </ProtectedRoute>
             }
           >
@@ -64,10 +64,9 @@ function App() {
             <Route path="projects" element={<ProjectList />} />
             <Route path="projects/new" element={<CreateProject />} />
             <Route path="projects/:projectId" element={<ProjectDetails />} />
-            <Route path="team" element={<TeamManagement />} /> {/* Placeholder */}
-            <Route path="subscription" element={<SubscriptionManagement />} /> {/* Placeholder */}
-            <Route path="settings" element={<TenantSettings />} /> {/* Placeholder */}
-            {/* Redirect unknown dashboard paths to overview */}
+            <Route path="team" element={<TeamManagement />} />
+            <Route path="subscription" element={<SubscriptionManagement />} />
+            <Route path="settings" element={<TenantSettings />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
 
@@ -75,28 +74,26 @@ function App() {
           <Route
             path="/admin"
             element={
-              <AdminProtectedRoute> {/* Special protection: must be logged in AND Platform Admin */}
-                <AdminLayout /> {/* Admin specific layout */}
+              <AdminProtectedRoute>
+                <AdminLayout />
               </AdminProtectedRoute>
             }
           >
-            <Route index element={<AdminDashboard />} /> {/* Placeholder */}
-            <Route path="tenants" element={<TenantList />} /> {/* Existing - needs verification/update */}
-            <Route path="users" element={<UserManagement />} /> {/* Existing - needs verification/update */}
-            <Route path="licenses" element={<AdminLicenseManagement />} /> {/* Placeholder */}
-            <Route path="procurement" element={<AdminProcurement />} /> {/* Placeholder */}
-            <Route path="settings" element={<AdminPlatformSettings />} /> {/* Placeholder */}
-            <Route path="status" element={<AdminApiStatus />} /> {/* Placeholder */}
-            {/* Redirect unknown admin paths to admin overview */}
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="tenants" element={<TenantManagement />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="licenses" element={<LicenseManagement />} />
+            <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 
           {/* Fallback for unknown top-level paths */}
-          {/* Redirect logic needs to consider admin status */}
           <Route
             path="*"
             element={
-              <Navigate to={session ? (isPlatformAdmin ? "/admin" : "/dashboard") : "/"} replace />
+              session
+               ? (isPlatformAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />)
+               : <Navigate to="/" replace />
             }
           />
         </Routes>
