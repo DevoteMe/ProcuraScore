@@ -209,9 +209,12 @@ const Dashboard: React.FC = () => {
 
         {/* Page Content - Render the matched nested route component here */}
         <main className="flex-1 overflow-y-auto bg-muted/40 p-6"> {/* Added padding */}
-           {/* Outlet renders the component matched by the nested route */}
-           {/* Pass context down to nested routes */}
-           <Outlet context={outletContextValue} />
+           {/* --- DEBUGGING: Temporarily replace Outlet --- */}
+           <div className="p-6 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded">
+             Outlet Content Placeholder - If you see this and NO error, the issue is in the Outlet component (e.g., DashboardOverview or AdminPanel).
+           </div>
+           {/* <Outlet context={outletContextValue} /> */}
+           {/* --- END DEBUGGING --- */}
         </main>
       </div>
     </div>
