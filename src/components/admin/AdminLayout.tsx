@@ -1,36 +1,19 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils"; // Assuming you have a utility for class names
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutDashboard, Users, Building, FileKey, Settings, LogOut } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
     const location = useLocation();
-    const { user, logout } = useAuth(); // Assuming logout function is available
-
-    // --- Development Bypass ---
-    if (import.meta.env.DEV) {
-      console.warn('[AdminLayout] Development mode: Bypassing admin check.');
-      // Proceed to render layout even if user is not technically an admin
-    } else {
-      // --- Production Check ---
-      // Basic check, ideally the route protection handles unauthorized access more robustly
-      if (user?.app_metadata?.is_platform_admin !== true) {
-          console.warn(`[AdminLayout] Access Denied rendering: User ${user?.email ?? 'unknown'} is not admin.`);
-          return (
-              <div className="flex justify-center items-center min-h-screen p-4">
-                  <p className="text-red-600 font-semibold">Access Denied. You must be a Platform Admin.</p>
-              </div>
-          );
-      }
-    }
-    // --- End Bypass Logic ---
+    // We still get user and logout for header display and logout button
+    const { user, logout } = useAuth();
 
     const handleLogout = async () => {
         try {
             await logout();
-            // Redirect handled by AuthContext or App fallback
+            // Redirect should happen via App.tsx fallback route or context listener
         } catch (error) {
             console.error('Admin logout failed:', error);
         }
@@ -43,11 +26,6 @@ const AdminLayout: React.FC = () => {
         { href: '/admin/licenses', label: 'Licenses', icon: FileKey },
         { href: '/admin/settings', label: 'Settings', icon: Settings },
     ];
-
-    // Log user only if available (and not in bypassed dev mode)
-    if (user && !import.meta.env.DEV) {
-      console.log("[AdminLayout] Rendering main layout for admin user:", user.email);
-    }
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
@@ -81,15 +59,14 @@ const AdminLayout: React.FC = () => {
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                     <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
                          <LogOut className="mr-3 h-5 w-5" />
-                         {/* Conditionally render user email */}
-                         Logout ({user?.email?.split('@')[0] ?? '[Dev Admin]'})
+                         {/* Use optional chaining, display placeholder if no user */}
+                         Logout ({user?.email?.split('@')[0] ?? 'Admin'})
                     </Button>
                 </div>
             </aside>
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-y-auto p-6">
-                {/* Outlet renders the matched child route component */}
                 <Outlet />
             </main>
         </div>
