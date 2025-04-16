@@ -20,13 +20,15 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) =
   }
 
   if (!session) {
-    // User not logged in, redirect to auth page
-    console.log("[AdminProtectedRoute] No session, redirecting to /auth");
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    // User not logged in, redirect to ADMIN login page
+    console.log("[AdminProtectedRoute] No session, redirecting to /admin/login");
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   if (!isPlatformAdmin) {
     // User is logged in but NOT a platform admin, redirect to user dashboard
+    // Or potentially show an "Access Denied" page specific to admin area?
+    // For now, redirecting to user dashboard is safer.
     console.warn("[AdminProtectedRoute] Access denied: Not a Platform Admin. Redirecting to /dashboard.");
     return <Navigate to="/dashboard" replace />;
   }

@@ -3,12 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import AuthComponent from './components/Auth';
-// Layouts (New)
+// Layouts
 import UserLayout from './components/layouts/UserLayout';
 import AdminLayout from './components/layouts/AdminLayout';
-// Protected Route Variants (Potentially New)
+// Protected Route Variants
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminProtectedRoute from './components/AdminProtectedRoute'; // New
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { ThemeProvider } from './components/theme-provider';
 
 // --- User Section Components ---
@@ -22,9 +22,10 @@ const SubscriptionManagement = () => <div className="p-6"><h2>Subscription & Bil
 const TenantSettings = () => <div className="p-6"><h2>Tenant Settings</h2><p>Configure your tenant settings here.</p></div>;
 
 // --- Admin Section Components ---
-import AdminDashboard from './components/admin/AdminDashboard'; // New Placeholder
-import TenantList from './components/admin/TenantList'; // Existing, move if needed
-import UserManagement from './components/admin/UserManagement'; // Existing, move if needed
+import AdminLogin from './components/admin/AdminLogin'; // New Admin Login Component
+import AdminDashboard from './components/admin/AdminDashboard';
+import TenantList from './components/admin/TenantList';
+import UserManagement from './components/admin/UserManagement';
 // Placeholders for Admin Section
 const AdminLicenseManagement = () => <div className="p-6"><h2>License Management</h2><p>View and manage platform licenses.</p></div>;
 const AdminProcurement = () => <div className="p-6"><h2>Procurement / Stripe Products</h2><p>View Stripe product configuration.</p></div>;
@@ -33,7 +34,7 @@ const AdminApiStatus = () => <div className="p-6"><h2>API Status</h2><p>View sta
 
 
 function App() {
-  const { session, loading } = useAuth();
+  const { session, loading, isPlatformAdmin } = useAuth(); // Added isPlatformAdmin here
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -43,7 +44,11 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/auth"
-            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />} // Redirect logged-in users away from auth
+            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />} // Regular user login
+          />
+          <Route
+            path="/admin/login" // New Admin Login Route
+            element={!session || !isPlatformAdmin ? <AdminLogin /> : <Navigate to="/admin" replace />} // Show login only if not logged in as admin
           />
 
           {/* User Dashboard Routes */}
@@ -87,7 +92,13 @@ function App() {
           </Route>
 
           {/* Fallback for unknown top-level paths */}
-          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
+          {/* Redirect logic needs to consider admin status */}
+          <Route
+            path="*"
+            element={
+              <Navigate to={session ? (isPlatformAdmin ? "/admin" : "/dashboard") : "/"} replace />
+            }
+          />
         </Routes>
       </Suspense>
     </ThemeProvider>
