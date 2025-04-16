@@ -10,10 +10,11 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 
 // Helper to create client with user's auth token
-function createSupabaseClient(req: Request): SupabaseClient {
-    const authHeader = req.headers.get('Authorization')!;
+function createSupabaseClient(req: Request): SupabaseClient | null {
+    const authHeader = req.headers.get('Authorization')
+    // If no auth header, return null - allows checking later
     if (!authHeader) {
-        throw new Error('Missing Authorization header');
+        return null;
     }
     return createClient(
         Deno.env.get('SUPABASE_URL')!,
@@ -28,6 +29,12 @@ const supabaseAdmin = createClient(
     SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Determine if running in a development-like environment
+// Supabase often sets APP_ENV=development locally/previews
+// Adjust this check if your environment variable is different
+const isDevelopment = Deno.env.get('APP_ENV') === 'development';
+console.log(`Function environment detected as: ${isDevelopment ? 'Development' : 'Production'}`);
+
 serve(async (req) => {
     console.log("Admin List Users function invoked.");
 
@@ -38,17 +45,37 @@ serve(async (req) => {
     }
 
     try {
-        // 1. Verify caller is Platform Admin
-        const supabase = createSupabaseClient(req);
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        let isAdminVerified = false;
 
-        if (userError) throw new Error(`Authentication error: ${userError.message}`);
-        if (!user) throw new Error('Authentication error: No user found');
-        if (user.app_metadata?.is_platform_admin !== true) {
-            throw new Error('Forbidden: User is not a Platform Admin');
+        // --- Development Bypass for Auth Check ---
+        if (isDevelopment) {
+            console.warn('[admin-list-users] Development mode: Bypassing authentication check.');
+            isAdminVerified = true; // Skip the check and proceed
+        } else {
+            // --- Production Auth Check ---
+            const supabase = createSupabaseClient(req);
+            if (!supabase) {
+                throw new Error('Authentication error: Missing Authorization header');
+            }
+
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+            if (userError) throw new Error(`Authentication error: ${userError.message}`);
+            if (!user) throw new Error('Authentication error: No user found');
+            if (user.app_metadata?.is_platform_admin !== true) {
+                throw new Error('Forbidden: User is not a Platform Admin');
+            }
+            isAdminVerified = true;
+            console.log(`User ${user.email} authenticated as Platform Admin.`);
+        }
+        // --- End Auth Check Logic ---
+
+        if (!isAdminVerified) {
+             // Should not happen with current logic, but as a safeguard
+             throw new Error("Assertion failed: Admin status not verified.");
         }
 
-        console.log(`User ${user.email} authenticated as Platform Admin. Fetching users...`);
+        console.log("Proceeding to fetch users...");
 
         // 2. Fetch all users using the admin client
         // Note: Adjust pagination if expecting a very large number of users

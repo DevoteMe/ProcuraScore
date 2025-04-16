@@ -32,43 +32,30 @@ const UserManagement: React.FC = () => {
 
   // Fetch users function using the Edge Function
   const fetchUsers = useCallback(async () => {
-    // During dev bypass, session might be null, skip fetching if needed
-    // Or better, allow fetching but handle potential null session gracefully
-    // if (import.meta.env.DEV && !session) {
-    //    console.warn("[UserManagement] Dev bypass: No session, skipping fetch.");
-    //    setLoading(false);
-    //    // Optionally set dummy data for UI development
-    //    // setUsers([{ id: 'dev-1', email: 'dev@example.com', created_at: new Date().toISOString(), app_metadata: {}, user_metadata: {}, aud:'dev' }]);
-    //    return;
-    // }
-
-    if (!session && !import.meta.env.DEV) {
-        // Only enforce session check if NOT in development mode
-        setError("Not authenticated.");
-        setLoading(false);
-        return;
-    }
+    // REMOVED the initial !session check that set the "Not authenticated." error
+    // We will now always attempt the fetch, relying on the Edge Function
+    // to handle auth (or bypass it in its own dev mode).
 
     setLoading(true);
     setError(null);
-    console.log("Fetching users via Edge Function...");
+    console.log("Fetching users via Edge Function (dev bypass active on frontend)...");
 
-    // Prepare headers, handle potential null session in dev mode
     const headers: HeadersInit = {
        'Content-Type': 'application/json',
     };
+    // Only add Authorization header if a session actually exists
     if (session) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
-    } else if (import.meta.env.DEV) {
-        console.warn("[UserManagement] Dev Mode: Fetching users without auth token.");
-        // No Authorization header sent in dev mode without session
+    } else {
+        // No session exists (likely due to dev login bypass)
+        console.warn("[UserManagement] No session found. Attempting fetch without Authorization header.");
     }
 
     try {
+      // Always attempt the function invoke now
       const { data, error: functionError } = await supabase.functions.invoke('admin-list-users', {
          method: 'POST',
          headers: headers,
-         // No body needed for list function
       });
 
       if (functionError) {
@@ -82,15 +69,19 @@ const UserManagement: React.FC = () => {
                  console.error("Failed to parse error JSON from function context:", parseError);
              }
          }
-        setError(message);
+        // Check for specific auth-related errors from the function itself
+        if (message.includes('Forbidden') || message.includes('Authentication error')) {
+            setError(`Access Denied by API: ${message}`);
+        } else {
+            setError(message);
+        }
         setUsers([]);
       } else if (data && data.users) {
         console.log("Users fetched successfully:", data.users);
-        // Ensure the data matches the ManagedUser structure
         setUsers(data.users as ManagedUser[]);
       } else {
         console.log("No users found or unexpected data structure:", data);
-        setError("Received unexpected data from the server.");
+        setError("Received unexpected data structure from the server.");
         setUsers([]);
       }
     } catch (catchError: any) {
@@ -101,7 +92,7 @@ const UserManagement: React.FC = () => {
       setLoading(false);
       console.log("Finished fetching users.");
     }
-  }, [session]); // Depend on session
+  }, [session]);
 
   useEffect(() => {
     fetchUsers();
