@@ -1,20 +1,14 @@
-// 4. React Frontend Structure - Example Protected Route Component
+// Standard Protected Route: Checks if user is logged in
 import React, { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom'; // Assuming react-router-dom
-import { useAuth } from '../contexts/AuthContext'; // Use your Auth context
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requireAdmin?: boolean; // Optional: Require platform admin
-  requireTenantAdmin?: boolean; // Optional: Require tenant admin for the selected tenant
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requireAdmin = false,
-  requireTenantAdmin = false,
-}) => {
-  const { session, loading, isPlatformAdmin, memberships, selectedTenantId } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { session, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -26,40 +20,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!session) {
-    // User not logged in, redirect to login page
-    // Pass the current location to redirect back after login
-    // Redirect to /auth instead of /login
+    // User not logged in, redirect to auth page
+    console.log("[ProtectedRoute] No session, redirecting to /auth");
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Check for Platform Admin requirement
-  if (requireAdmin && !isPlatformAdmin) {
-    console.warn("Access denied: Platform Admin required.");
-    // Redirect to an unauthorized page or dashboard
-    return <Navigate to="/dashboard" replace />; // Or specific unauthorized page
-  }
-
-  // Check for Tenant Admin requirement for the currently selected tenant
-  if (requireTenantAdmin) {
-    if (!selectedTenantId) {
-        console.warn("Access denied: No tenant selected.");
-        return <Navigate to="/dashboard" replace />; // Or tenant selection page
-    }
-    const currentMembership = memberships.find(m => m.tenant_id === selectedTenantId);
-    // Ensure role check matches your defined roles (e.g., 'tenant_admin' or 'tenant_id_admin')
-    // Assuming 'tenant_id_admin' based on previous context
-    if (currentMembership?.role !== 'tenant_id_admin') {
-        console.warn(`Access denied: Tenant Admin role required for tenant ${selectedTenantId}. User role: ${currentMembership?.role}`);
-        // Redirect to tenant dashboard or unauthorized page
-        return <Navigate to="/dashboard" replace />; // Adjust as needed
-    }
-  }
-
-  // User is authenticated and meets role requirements (if any)
+  // User is logged in
   return <>{children}</>;
 };
 
 export default ProtectedRoute;
-
-// Removed the problematic example usage comment block.
-// Refer to App.tsx for actual route implementation examples.

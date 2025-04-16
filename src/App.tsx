@@ -3,34 +3,38 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import AuthComponent from './components/Auth';
-import Dashboard from './components/Dashboard';
+// Layouts (New)
+import UserLayout from './components/layouts/UserLayout';
+import AdminLayout from './components/layouts/AdminLayout';
+// Protected Route Variants (Potentially New)
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute'; // New
 import { ThemeProvider } from './components/theme-provider';
+
+// --- User Section Components ---
 import DashboardOverview from './components/DashboardOverview';
 import ProjectList from './components/tenant/ProjectList';
 import CreateProject from './components/tenant/CreateProject';
-import AdminPanel from './components/admin/AdminPanel'; // Import AdminPanel
-import ProjectDetails from './components/ProjectDetails'; // Import ProjectDetails
+import ProjectDetails from './components/ProjectDetails';
+// Placeholders for User Section
+const TeamManagement = () => <div className="p-6"><h2>Team Management</h2><p>Manage your team members here.</p></div>;
+const SubscriptionManagement = () => <div className="p-6"><h2>Subscription & Billing</h2><p>Manage your subscription details here.</p></div>;
+const TenantSettings = () => <div className="p-6"><h2>Tenant Settings</h2><p>Configure your tenant settings here.</p></div>;
 
-// Simple placeholder components for routes not yet implemented
-const PlaceholderComponent: React.FC<{ title: string }> = ({ title }) => (
-  <div className="p-6"><h2 className="text-xl font-semibold">{title}</h2><p>Content for this section will be implemented soon.</p></div>
-);
-
-// Keep placeholders for routes not directly implemented in this step
-// const TenantManagement = () => <PlaceholderComponent title="Tenant Management" />; // Replaced by AdminPanel section
-// const UserManagement = () => <PlaceholderComponent title="User Management" />; // Replaced by AdminPanel section
-const SystemSettings = () => <PlaceholderComponent title="System Settings" />; // This might be different from Platform Admin Settings
-const EvaluationList = () => <PlaceholderComponent title="Evaluations" />;
-const TeamMemberList = () => <PlaceholderComponent title="Team Members" />;
-const TenantSettings = () => <PlaceholderComponent title="Tenant Settings" />;
-// const ProjectDetails = () => <PlaceholderComponent title="Project Details" />; // No longer placeholder
+// --- Admin Section Components ---
+import AdminDashboard from './components/admin/AdminDashboard'; // New Placeholder
+import TenantList from './components/admin/TenantList'; // Existing, move if needed
+import UserManagement from './components/admin/UserManagement'; // Existing, move if needed
+// Placeholders for Admin Section
+const AdminLicenseManagement = () => <div className="p-6"><h2>License Management</h2><p>View and manage platform licenses.</p></div>;
+const AdminProcurement = () => <div className="p-6"><h2>Procurement / Stripe Products</h2><p>View Stripe product configuration.</p></div>;
+const AdminPlatformSettings = () => <div className="p-6"><h2>Platform Settings</h2><p>Configure global platform settings.</p></div>;
+const AdminApiStatus = () => <div className="p-6"><h2>API Status</h2><p>View status of integrations.</p></div>;
 
 
 function App() {
-  const { session, loading, userDetails } = useAuth(); // Add userDetails from context
+  const { session, loading } = useAuth();
 
-  // Wrap the entire app in Suspense
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div>Loading application...</div></div>}>
@@ -39,45 +43,50 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/auth"
-            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />}
+            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />} // Redirect logged-in users away from auth
           />
 
-          {/* Protected Dashboard Routes */}
+          {/* User Dashboard Routes */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
-                {session ? <Dashboard key={session.user.id} session={session} /> : null}
+              <ProtectedRoute> {/* Standard protection: must be logged in */}
+                <UserLayout /> {/* User specific layout */}
               </ProtectedRoute>
             }
           >
-            {/* Nested Routes - Rendered inside Dashboard's <Outlet /> */}
-            <Route index element={<DashboardOverview />} /> {/* Default view */}
-
-            {/* Platform Admin Route - Conditionally render AdminPanel */}
-            {userDetails?.roles?.includes('Platform_Admin') && session && (
-              <Route path="admin" element={<AdminPanel user={session.user} />} />
-            )}
-            {/* Keep other admin-related placeholders if they represent different sections */}
-            {/* <Route path="users" element={<UserManagement />} /> */}
-            {/* <Route path="settings" element={<SystemSettings />} /> */}
-
-
-            {/* Tenant Routes */}
+            <Route index element={<DashboardOverview />} />
             <Route path="projects" element={<ProjectList />} />
             <Route path="projects/new" element={<CreateProject />} />
             <Route path="projects/:projectId" element={<ProjectDetails />} />
-            <Route path="evaluations" element={<EvaluationList />} />
-            <Route path="team" element={<TeamMemberList />} />
-            <Route path="tenant-settings" element={<TenantSettings />} />
-
-            {/* Fallback for unauthorized admin access or unknown dashboard routes */}
-            <Route path="admin" element={!userDetails?.roles?.includes('Platform_Admin') ? <Navigate to="/dashboard" replace /> : null} />
-            {/* Add more nested routes as needed */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} /> {/* Redirect unknown dashboard paths to overview */}
+            <Route path="team" element={<TeamManagement />} /> {/* Placeholder */}
+            <Route path="subscription" element={<SubscriptionManagement />} /> {/* Placeholder */}
+            <Route path="settings" element={<TenantSettings />} /> {/* Placeholder */}
+            {/* Redirect unknown dashboard paths to overview */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
 
-          {/* Redirect unknown top-level paths */}
+          {/* Platform Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute> {/* Special protection: must be logged in AND Platform Admin */}
+                <AdminLayout /> {/* Admin specific layout */}
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} /> {/* Placeholder */}
+            <Route path="tenants" element={<TenantList />} /> {/* Existing - needs verification/update */}
+            <Route path="users" element={<UserManagement />} /> {/* Existing - needs verification/update */}
+            <Route path="licenses" element={<AdminLicenseManagement />} /> {/* Placeholder */}
+            <Route path="procurement" element={<AdminProcurement />} /> {/* Placeholder */}
+            <Route path="settings" element={<AdminPlatformSettings />} /> {/* Placeholder */}
+            <Route path="status" element={<AdminApiStatus />} /> {/* Placeholder */}
+            {/* Redirect unknown admin paths to admin overview */}
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Route>
+
+          {/* Fallback for unknown top-level paths */}
           <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
         </Routes>
       </Suspense>
