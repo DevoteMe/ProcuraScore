@@ -6,8 +6,8 @@ import AuthComponent from './components/Auth';
 // Layouts
 import UserLayout from './components/layouts/UserLayout';
 // Protected Route Variants
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminProtectedRoute from './components/AdminProtectedRoute';
+// import ProtectedRoute from './components/ProtectedRoute'; // Temporarily remove import
+// import AdminProtectedRoute from './components/AdminProtectedRoute'; // Temporarily remove import
 import { ThemeProvider } from './components/theme-provider';
 
 // --- User Section Components ---
@@ -42,23 +42,13 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route
-            path="/auth"
-            element={!session ? <AuthComponent /> : <Navigate to="/dashboard" replace />}
-          />
-          <Route
-            path="/admin/login"
-            element={!session || !isPlatformAdmin ? <AdminLoginPage /> : <Navigate to="/admin" replace />}
-          />
+          <Route path="/auth" element={<AuthComponent />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
-          {/* User Dashboard Routes */}
+          {/* User Dashboard Routes - REMOVED ProtectedRoute wrapper */}
           <Route
             path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <UserLayout />
-              </ProtectedRoute>
-            }
+            element={<UserLayout />}
           >
             <Route index element={<DashboardOverview />} />
             <Route path="projects" element={<ProjectList />} />
@@ -70,14 +60,10 @@ function App() {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
 
-          {/* Platform Admin Routes */}
+          {/* Platform Admin Routes - REMOVED AdminProtectedRoute wrapper */}
           <Route
             path="/admin"
-            element={
-              <AdminProtectedRoute>
-                <AdminLayout />
-              </AdminProtectedRoute>
-            }
+            element={<AdminLayout />}
           >
             <Route index element={<AdminDashboardPage />} />
             <Route path="tenants" element={<TenantManagement />} />
@@ -87,13 +73,13 @@ function App() {
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 
-          {/* Fallback for unknown top-level paths */}
+          {/* Fallback for unknown top-level paths - Keep this logic */}
           <Route
             path="*"
             element={
               session
                ? (isPlatformAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />)
-               : <Navigate to="/" replace />
+               : <Navigate to="/" replace /> // If not logged in at all, go to landing
             }
           />
         </Routes>
