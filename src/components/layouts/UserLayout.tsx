@@ -9,21 +9,35 @@ import { Button } from '../ui/button';
 // TODO: Add back stats fetching/display logic relevant to users/tenants
 
 const UserLayout: React.FC = () => {
-  const { user, signOut } = useAuth(); // Removed unused vars like session, loading, isPlatformAdmin
+  const { user, signOut } = useAuth();
+
+  // --- Development Bypass ---
+  // In development mode, skip the user check and render the layout
+  if (import.meta.env.DEV) {
+    console.warn('[UserLayout] Development mode: Bypassing user check.');
+    // Proceed to render the layout even without a real user object
+    // We'll need to handle potential null references below if 'user' is used extensively
+  } else {
+      // --- Production Check ---
+      if (!user) {
+         // This case should ideally be handled by ProtectedRoute, but as a fallback:
+         console.log("[UserLayout] Rendering: No user found (should have been redirected).");
+         return <div className="flex justify-center items-center min-h-screen">Not logged in.</div>;
+      }
+  }
+  // --- End Bypass Logic ---
 
   const handleLogout = async () => {
     console.log("[UserLayout] handleLogout called.");
     await signOut();
-    // Navigation will be handled by AuthContext listener and ProtectedRoute
+    // Navigation will be handled by AuthContext listener and ProtectedRoute/App fallback
   };
 
-  if (!user) {
-     // This case should ideally be handled by ProtectedRoute, but as a fallback:
-     console.log("[UserLayout] Rendering: No user found (should have been redirected).");
-     return <div className="flex justify-center items-center min-h-screen">Not logged in.</div>;
+  // Log user only if available (and not in bypassed dev mode)
+  if (user && !import.meta.env.DEV) {
+    console.log("[UserLayout] Rendering main layout for user:", user.email);
   }
 
-  console.log("[UserLayout] Rendering main layout for user:", user.email);
   return (
     <div className="flex h-screen bg-background">
       <UserSidebar /> {/* User-specific sidebar */}
@@ -35,7 +49,10 @@ const UserLayout: React.FC = () => {
             {/* TODO: Add Tenant Switcher logic here if user has multiple memberships */}
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Welcome, {user.email}</span>
+            {/* Conditionally render user email, handle case where user might be null in dev mode */}
+            <span className="text-sm text-muted-foreground">
+              Welcome, {user?.email ?? '[Dev User]'}
+            </span>
             <Button onClick={handleLogout} variant="outline" size="sm">Logout</Button>
           </div>
         </header>

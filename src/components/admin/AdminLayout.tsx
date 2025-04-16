@@ -9,18 +9,30 @@ const AdminLayout: React.FC = () => {
     const location = useLocation();
     const { user, logout } = useAuth(); // Assuming logout function is available
 
-    // Basic check, ideally the route protection handles unauthorized access
-    if (user?.app_metadata?.is_platform_admin !== true) {
-        return <p>Access Denied. You must be a Platform Admin.</p>;
+    // --- Development Bypass ---
+    if (import.meta.env.DEV) {
+      console.warn('[AdminLayout] Development mode: Bypassing admin check.');
+      // Proceed to render layout even if user is not technically an admin
+    } else {
+      // --- Production Check ---
+      // Basic check, ideally the route protection handles unauthorized access more robustly
+      if (user?.app_metadata?.is_platform_admin !== true) {
+          console.warn(`[AdminLayout] Access Denied rendering: User ${user?.email ?? 'unknown'} is not admin.`);
+          return (
+              <div className="flex justify-center items-center min-h-screen p-4">
+                  <p className="text-red-600 font-semibold">Access Denied. You must be a Platform Admin.</p>
+              </div>
+          );
+      }
     }
+    // --- End Bypass Logic ---
 
     const handleLogout = async () => {
         try {
             await logout();
-            // Redirect handled by AuthContext or route protection
+            // Redirect handled by AuthContext or App fallback
         } catch (error) {
             console.error('Admin logout failed:', error);
-            // Handle logout error display if necessary
         }
     };
 
@@ -31,6 +43,11 @@ const AdminLayout: React.FC = () => {
         { href: '/admin/licenses', label: 'Licenses', icon: FileKey },
         { href: '/admin/settings', label: 'Settings', icon: Settings },
     ];
+
+    // Log user only if available (and not in bypassed dev mode)
+    if (user && !import.meta.env.DEV) {
+      console.log("[AdminLayout] Rendering main layout for admin user:", user.email);
+    }
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
@@ -64,7 +81,8 @@ const AdminLayout: React.FC = () => {
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                     <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
                          <LogOut className="mr-3 h-5 w-5" />
-                         Logout ({user?.email?.split('@')[0]})
+                         {/* Conditionally render user email */}
+                         Logout ({user?.email?.split('@')[0] ?? '[Dev Admin]'})
                     </Button>
                 </div>
             </aside>
