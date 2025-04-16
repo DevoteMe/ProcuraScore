@@ -1,6 +1,5 @@
 import React from 'react';
-// Assuming you have a standard login form component
-// import LoginForm from '@/components/auth/LoginForm';
+import AdminLoginForm from '@/components/admin/AdminLoginForm'; // Import the new form
 
 const AdminLoginPage: React.FC = () => {
   return (
@@ -9,12 +8,11 @@ const AdminLoginPage: React.FC = () => {
         <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
           Admin Login
         </h2>
-        {/* Render the standard login form here */}
-        {/* <LoginForm /> */}
-        <p className="text-center text-gray-600 dark:text-gray-400 mt-4">
+        {/* Replace placeholder with the actual AdminLoginForm */}
+        <AdminLoginForm />
+        {/* <p className="text-center text-gray-600 dark:text-gray-400 mt-4">
            (Placeholder for Login Form)
-        </p>
-        {/* Add specific messaging for admins if needed */}
+        </p> */}
       </div>
     </div>
   );
