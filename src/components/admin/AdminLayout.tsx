@@ -7,12 +7,12 @@ import { LayoutDashboard, Users, Building, FileKey, Settings, LogOut } from 'luc
 
 const AdminLayout: React.FC = () => {
     const location = useLocation();
-    // We still get user and logout for header display and logout button
-    const { user, logout } = useAuth();
+    // Use the correct function name from AuthContext
+    const { user, signOut } = useAuth();
 
     const handleLogout = async () => {
         try {
-            await logout();
+            await signOut(); // Use signOut here
             // Redirect should happen via App.tsx fallback route or context listener
         } catch (error) {
             console.error('Admin logout failed:', error);

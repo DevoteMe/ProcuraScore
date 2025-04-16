@@ -1,100 +1,108 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+
+console.log("Admin List Users function initializing.");
 
 // WARNING: Never expose your service role key publicly!
 // Use environment variables securely configured in your Supabase project settings.
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 
-serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
-  try {
-    // Create Supabase client configured to use service_role key
-    const supabaseAdmin = createClient(
-      SUPABASE_URL!,
-      SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } } // Prevent storing session for server-side client
-    )
-
-    // 1. Verify the caller is a platform admin
-    // Get the JWT from the Authorization header
-    const authHeader = req.headers.get('Authorization')
+// Helper to create client with user's auth token
+function createSupabaseClient(req: Request): SupabaseClient {
+    const authHeader = req.headers.get('Authorization')!;
     if (!authHeader) {
-      throw new Error('Missing Authorization Header')
+        throw new Error('Missing Authorization header');
     }
-    const jwt = authHeader.replace('Bearer ', '')
+    return createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+    );
+}
 
-    // Get user details from the JWT
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt)
-    if (userError || !user) {
-       console.error('Auth Error:', userError)
-       throw new Error('Authentication failed')
-    }
+// Admin client using Service Role Key
+const supabaseAdmin = createClient(
+    SUPABASE_URL!,
+    SUPABASE_SERVICE_ROLE_KEY!
+);
 
-    // Check for the admin claim (adjust 'claims_admin' if your claim name is different)
-    const isPlatformAdmin = user.app_metadata?.claims_admin === true
-    if (!isPlatformAdmin) {
-      console.warn(`Non-admin user ${user.id} attempted to list users.`)
-      return new Response(JSON.stringify({ error: 'Permission denied: Not a platform admin' }), {
-        status: 403, // Forbidden
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+serve(async (req) => {
+    console.log("Admin List Users function invoked.");
 
-    console.log(`Admin user ${user.id} requesting user list.`)
-
-    // 2. Fetch all users using the admin client
-    // Adjust pagination as needed for large user bases
-    const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-       page: 1,
-       perPage: 1000, // Fetch up to 1000 users initially
-    });
-
-    if (listError) {
-      console.error('Error listing users:', listError)
-      throw listError
+    // Handle CORS preflight request
+    if (req.method === 'OPTIONS') {
+        console.log("Handling OPTIONS request.");
+        return new Response('ok', { headers: corsHeaders })
     }
 
-    // TODO: Optionally enrich user data here by fetching from 'profiles'
-    // For example, fetch profiles matching the user IDs and merge the data.
-    // This requires an additional query. For simplicity now, we return auth data.
-    // Example enrichment (uncomment and adapt if needed):
-    /*
-    const userIds = usersData.users.map(u => u.id);
-    const { data: profilesData, error: profilesError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, full_name, avatar_url, tenant_id') // Select needed profile fields
-      .in('id', userIds);
+    try {
+        // 1. Verify caller is Platform Admin
+        const supabase = createSupabaseClient(req);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
-      // Decide how to handle: return partial data or throw error?
-      // For now, log error but continue with auth data
+        if (userError) throw new Error(`Authentication error: ${userError.message}`);
+        if (!user) throw new Error('Authentication error: No user found');
+        if (user.app_metadata?.is_platform_admin !== true) {
+            throw new Error('Forbidden: User is not a Platform Admin');
+        }
+
+        console.log(`User ${user.email} authenticated as Platform Admin. Fetching users...`);
+
+        // 2. Fetch all users using the admin client
+        // Note: Adjust pagination if expecting a very large number of users
+        const { data: usersData, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000, // Adjust as needed, max 1000 per page for listUsers
+        });
+
+        if (fetchError) {
+            console.error("Error fetching users:", fetchError.message);
+            throw fetchError;
+        }
+
+        const users = usersData?.users || [];
+        console.log(`Successfully fetched ${users.length} users.`);
+
+        // TODO: Optionally enrich user data here by fetching from 'profiles'
+        // For example, fetch profiles matching the user IDs and merge the data.
+        // This requires an additional query. For simplicity now, we return auth data.
+        // Example enrichment (uncomment and adapt if needed):
+        /*
+        const userIds = usersData.users.map(u => u.id);
+        const { data: profilesData, error: profilesError } = await supabaseAdmin
+          .from('profiles')
+          .select('id, full_name, avatar_url, tenant_id') // Select needed profile fields
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          // Decide how to handle: return partial data or throw error?
+          // For now, log error but continue with auth data
+        }
+
+        const profilesMap = new Map(profilesData?.map(p => [p.id, p]));
+
+        const enrichedUsers = usersData.users.map(user => ({
+          ...user, // Spread auth user data
+          profile: profilesMap.get(user.id) || null, // Add profile data if found
+        }));
+        */
+
+        // Return the list of users (using auth data for now)
+        return new Response(JSON.stringify({ users }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+    } catch (error) {
+        console.error("Caught error in function:", error.message);
+        const status = error.message.startsWith('Forbidden') ? 403 : error.message.startsWith('Authentication') ? 401 : 500;
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
     }
-
-    const profilesMap = new Map(profilesData?.map(p => [p.id, p]));
-
-    const enrichedUsers = usersData.users.map(user => ({
-      ...user, // Spread auth user data
-      profile: profilesMap.get(user.id) || null, // Add profile data if found
-    }));
-    */
-
-    // Return the list of users (using auth data for now)
-    return new Response(JSON.stringify({ users: usersData.users }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
-  } catch (error) {
-    console.error('Function Error:', error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500, // Internal Server Error
-    })
-  }
 })
+
+console.log("Admin List Users function initialized and serving.");
