@@ -23,16 +23,8 @@ const CreateProject: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // TEMPORARY: Assign to a fixed tenant ID during dev bypass
-        // Replace with actual user's tenant ID later
-        const devTenantId = 'YOUR_DEFAULT_TENANT_ID_HERE'; // TODO: Replace with a valid UUID from your tenants table
-        // const devUserId = user?.id; // TODO: Get actual user ID later
-
-        if (devTenantId === 'YOUR_DEFAULT_TENANT_ID_HERE') {
-             setError("Developer Error: Please set a default tenant ID in CreateProject.tsx for bypass mode.");
-             setLoading(false);
-             return;
-        }
+        // Use the UUID of the EXISTING Demo Tenant
+        const devTenantId = '1fcf37df-c8a6-4c70-9f67-81546f9c1854'; // Correct Demo Tenant UUID
 
         try {
             const { data, error: insertError } = await supabase
@@ -40,9 +32,8 @@ const CreateProject: React.FC = () => {
                 .insert({
                     name: projectName,
                     description: projectDescription,
-                    tenant_id: devTenantId, // Use dev tenant ID for now
-                    // created_by_user_id: devUserId, // Assign user later
-                    status: 'draft' // Default status
+                    tenant_id: devTenantId, // Use existing Demo Tenant ID
+                    status: 'draft'
                 })
                 .select()
                 .single();
@@ -51,9 +42,8 @@ const CreateProject: React.FC = () => {
                 throw insertError;
             }
 
-            console.log('Project created:', data);
-            // Navigate to the new project's detail page (or project list)
-            navigate(`/dashboard/projects/${data.id}`); // Redirect to the new project
+            console.log('Project created under Demo Tenant:', data);
+            navigate(`/dashboard/projects/${data.id}`);
 
         } catch (err: any) {
             console.error("Error creating project:", err);
