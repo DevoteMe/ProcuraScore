@@ -80,14 +80,17 @@ const Dashboard: React.FC = () => {
           }
 
           // --- Fetch or Set Mock Stats ---
+          // IMPORTANT: Pass the stats down via context
           if (isPlatformAdmin) {
             // TODO: Replace with actual API calls for platform stats
-            setPlatformStats({ totalTenants: 15, totalUsers: 120, activeProjects: 55 });
-            console.log("[Dashboard] Set mock platform stats.");
+            const stats = { totalTenants: 15, totalUsers: 120, activeProjects: 55 };
+            setPlatformStats(stats);
+            console.log("[Dashboard] Set mock platform stats:", stats);
           } else if (currentSelectedTenantId) {
             // TODO: Replace with actual API calls for the selected tenant's stats
-            setTenantStats({ activeProjects: 5, pendingTasks: 3, teamMembers: 8 });
-            console.log("[Dashboard] Set mock tenant stats for tenant:", currentSelectedTenantId);
+            const stats = { activeProjects: 5, pendingTasks: 3, teamMembers: 8 };
+            setTenantStats(stats);
+            console.log("[Dashboard] Set mock tenant stats for tenant:", currentSelectedTenantId, stats);
           }
           // --- End Fetch/Set Stats ---
 
@@ -96,6 +99,8 @@ const Dashboard: React.FC = () => {
           // Reset state on error?
           setMemberships([]);
           setSelectedTenantId(null);
+          setPlatformStats({ totalTenants: 0, totalUsers: 0, activeProjects: 0 }); // Reset stats on error
+          setTenantStats({ activeProjects: 0, pendingTasks: 0, teamMembers: 0 }); // Reset stats on error
         } finally {
           setLoadingData(false);
           console.log("[Dashboard] fetchData finished, setLoadingData(false).");
@@ -108,6 +113,8 @@ const Dashboard: React.FC = () => {
       console.log("[Dashboard] Auth loaded but no user, clearing state and setting loadingData false.");
       setMemberships([]);
       setSelectedTenantId(null);
+      setPlatformStats({ totalTenants: 0, totalUsers: 0, activeProjects: 0 });
+      setTenantStats({ activeProjects: 0, pendingTasks: 0, teamMembers: 0 });
       setLoadingData(false); // Ensure loadingData is false if there's no user
     } else {
        console.log("[Dashboard] Skipping data fetch (Auth Loading or No User).");
@@ -153,13 +160,13 @@ const Dashboard: React.FC = () => {
   console.log(`[Dashboard] Determined tenantRole: ${tenantRole} for selectedTenantId: ${selectedTenantId}`);
 
   // Prepare context for Outlet
+  // Pass the fetched/mocked stats down
   const outletContextValue: DashboardOutletContext = {
     isPlatformAdmin,
     selectedTenantId,
     tenantRole,
-    // Pass stats if needed by children, otherwise remove
-    // platformStats,
-    // tenantStats,
+    platformStats, // Pass platform stats
+    tenantStats,   // Pass tenant stats
   };
   console.log("[Dashboard] Prepared Outlet context:", outletContextValue);
 
@@ -209,12 +216,9 @@ const Dashboard: React.FC = () => {
 
         {/* Page Content - Render the matched nested route component here */}
         <main className="flex-1 overflow-y-auto bg-muted/40 p-6"> {/* Added padding */}
-           {/* --- DEBUGGING: Temporarily replace Outlet --- */}
-           <div className="p-6 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded">
-             Outlet Content Placeholder - If you see this and NO error, the issue is in the Outlet component (e.g., DashboardOverview or AdminPanel).
-           </div>
-           {/* <Outlet context={outletContextValue} /> */}
-           {/* --- END DEBUGGING --- */}
+           {/* --- Restore Outlet --- */}
+           <Outlet context={outletContextValue} />
+           {/* --- End Restore Outlet --- */}
         </main>
       </div>
     </div>

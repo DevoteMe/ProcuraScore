@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Users, Building, FolderKanban, Clock } from 'lucide-react';
 
 // Define the structure of the context passed from Dashboard
+// Ensure this matches the structure provided by Dashboard
 interface DashboardContext {
   isPlatformAdmin: boolean;
   selectedTenantId: string | null;
-  tenantRole?: 'tenant_id_admin' | 'tenant_id_user';
+  tenantRole?: 'tenant_id_admin' | 'tenant_id_user' | string; // Allow string for flexibility
   platformStats: { totalTenants: number, totalUsers: number, activeProjects: number };
   tenantStats: { activeProjects: number, pendingTasks: number, teamMembers: number };
 }
@@ -16,12 +17,22 @@ const DashboardOverview: React.FC = () => {
   // Use the context provided by the Dashboard component via Outlet
   const context = useOutletContext<DashboardContext>();
 
+  // Log the received context immediately
+  console.log("[DashboardOverview] Received context:", context);
+
   // Handle cases where context might not be available yet (though ProtectedRoute should prevent this)
-  if (!context) {
-    return <div className="p-6">Loading overview data...</div>;
+  // Also check if stats objects are present before destructuring
+  if (!context || !context.platformStats || !context.tenantStats) {
+    console.error("[DashboardOverview] Context or stats missing:", context);
+    return <div className="p-6">Loading overview data or context missing...</div>;
   }
 
+  // Destructure *after* checking context exists
   const { isPlatformAdmin, selectedTenantId, platformStats, tenantStats } = context;
+  console.log("[DashboardOverview] Destructured context. isPlatformAdmin:", isPlatformAdmin, "selectedTenantId:", selectedTenantId);
+  console.log("[DashboardOverview] Platform Stats:", platformStats);
+  console.log("[DashboardOverview] Tenant Stats:", tenantStats);
+
 
   return (
     <div className="p-6">
@@ -36,7 +47,8 @@ const DashboardOverview: React.FC = () => {
                 <Building className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{platformStats.totalTenants}</div>
+                {/* Check if platformStats exists before accessing properties */}
+                <div className="text-2xl font-bold">{platformStats?.totalTenants ?? 'N/A'}</div>
                 {/* <p className="text-xs text-muted-foreground">+2% from last month</p> */}
               </CardContent>
             </Card>
@@ -46,7 +58,7 @@ const DashboardOverview: React.FC = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{platformStats.totalUsers}</div>
+                <div className="text-2xl font-bold">{platformStats?.totalUsers ?? 'N/A'}</div>
                  {/* <p className="text-xs text-muted-foreground">+10% from last month</p> */}
               </CardContent>
             </Card>
@@ -56,7 +68,7 @@ const DashboardOverview: React.FC = () => {
                 <FolderKanban className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{platformStats.activeProjects}</div>
+                <div className="text-2xl font-bold">{platformStats?.activeProjects ?? 'N/A'}</div>
                  {/* <p className="text-xs text-muted-foreground">+5 since last week</p> */}
               </CardContent>
             </Card>
@@ -70,7 +82,8 @@ const DashboardOverview: React.FC = () => {
                 <FolderKanban className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.activeProjects}</div>
+                 {/* Check if tenantStats exists before accessing properties */}
+                <div className="text-2xl font-bold">{tenantStats?.activeProjects ?? 'N/A'}</div>
                  {/* <p className="text-xs text-muted-foreground">in this tenant</p> */}
               </CardContent>
             </Card>
@@ -80,7 +93,7 @@ const DashboardOverview: React.FC = () => {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.pendingTasks}</div>
+                <div className="text-2xl font-bold">{tenantStats?.pendingTasks ?? 'N/A'}</div>
                  {/* <p className="text-xs text-muted-foreground">across all projects</p> */}
               </CardContent>
             </Card>
@@ -90,7 +103,7 @@ const DashboardOverview: React.FC = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{tenantStats.teamMembers}</div>
+                <div className="text-2xl font-bold">{tenantStats?.teamMembers ?? 'N/A'}</div>
                  {/* <p className="text-xs text-muted-foreground">in this tenant</p> */}
               </CardContent>
             </Card>
