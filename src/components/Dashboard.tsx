@@ -33,9 +33,11 @@ const Dashboard: React.FC = () => {
   // --- End Mock Data ---
 
   useEffect(() => {
+    console.log(`[Dashboard] useEffect triggered. AuthLoading: ${authLoading}, User: ${user?.id}`);
     // Only fetch data if auth is not loading and user is logged in
     if (!authLoading && user) {
       const fetchData = async () => {
+        console.log("[Dashboard] fetchData started.");
         setLoadingData(true);
         try {
           // isPlatformAdmin is now directly from context
@@ -44,6 +46,7 @@ const Dashboard: React.FC = () => {
           let currentSelectedTenantId = selectedTenantId; // Store current selection
 
           if (!isPlatformAdmin) {
+            console.log("[Dashboard] Fetching tenant memberships for user:", user.id);
             let { data: membershipData, error: membershipError } = await supabase
               .from('tenant_memberships')
               .select('tenant_id, role')
@@ -52,16 +55,20 @@ const Dashboard: React.FC = () => {
             if (membershipError) throw membershipError;
             const fetchedMemberships = membershipData || [];
             setMemberships(fetchedMemberships);
+            console.log("[Dashboard] Fetched memberships:", fetchedMemberships);
 
             // Auto-select tenant logic
             if ((!currentSelectedTenantId || !fetchedMemberships.some(m => m.tenant_id === currentSelectedTenantId)) && fetchedMemberships.length > 0) {
               currentSelectedTenantId = fetchedMemberships[0].tenant_id;
               setSelectedTenantId(currentSelectedTenantId);
+              console.log("[Dashboard] Auto-selected tenant:", currentSelectedTenantId);
             } else if (fetchedMemberships.length === 0) {
               setSelectedTenantId(null);
               currentSelectedTenantId = null;
+              console.log("[Dashboard] No memberships found, selectedTenantId set to null.");
             } else {
               setSelectedTenantId(currentSelectedTenantId); // Keep valid selection
+              console.log("[Dashboard] Kept existing selected tenant:", currentSelectedTenantId);
             }
 
           } else {
@@ -69,60 +76,81 @@ const Dashboard: React.FC = () => {
             setMemberships([]);
             setSelectedTenantId(null);
             currentSelectedTenantId = null;
+            console.log("[Dashboard] User is Platform Admin, clearing memberships and selectedTenantId.");
           }
 
           // --- Fetch or Set Mock Stats ---
           if (isPlatformAdmin) {
             // TODO: Replace with actual API calls for platform stats
             setPlatformStats({ totalTenants: 15, totalUsers: 120, activeProjects: 55 });
+            console.log("[Dashboard] Set mock platform stats.");
           } else if (currentSelectedTenantId) {
             // TODO: Replace with actual API calls for the selected tenant's stats
             setTenantStats({ activeProjects: 5, pendingTasks: 3, teamMembers: 8 });
+            console.log("[Dashboard] Set mock tenant stats for tenant:", currentSelectedTenantId);
           }
           // --- End Fetch/Set Stats ---
 
         } catch (error: any) {
-          console.error('Error fetching dashboard data:', error.message);
+          console.error('[Dashboard] Error fetching dashboard data:', error.message);
           // Reset state on error?
           setMemberships([]);
           setSelectedTenantId(null);
         } finally {
           setLoadingData(false);
+          console.log("[Dashboard] fetchData finished, setLoadingData(false).");
         }
       };
 
       fetchData();
     } else if (!authLoading && !user) {
       // If auth is done loading and there's no user, clear dashboard data
+      console.log("[Dashboard] Auth loaded but no user, clearing state and setting loadingData false.");
       setMemberships([]);
       setSelectedTenantId(null);
-      setLoadingData(false);
+      setLoadingData(false); // Ensure loadingData is false if there's no user
+    } else {
+       console.log("[Dashboard] Skipping data fetch (Auth Loading or No User).");
+       // If auth is loading, we might want to ensure data loading is true?
+       // Or rely on the initial state. Let's keep it simple for now.
+       // If authLoading is true, the outer loading check handles it.
     }
   // Re-run useEffect if auth state changes (user, isPlatformAdmin) or selectedTenantId changes
+  // Added authLoading dependency to ensure fetch runs when auth finishes loading
   }, [user, isPlatformAdmin, selectedTenantId, authLoading]);
 
   const handleLogout = async () => {
+    console.log("[Dashboard] handleLogout called.");
     await signOut(); // Use signOut from context
+    // Redirect logic is handled by ProtectedRoute based on session state change
   };
 
   const switchTenant = (tenantId: string) => {
+    console.log("[Dashboard] Switching tenant to:", tenantId);
     setSelectedTenantId(tenantId);
     // Data refetches via useEffect dependency change
   };
 
+  // Log state right before rendering checks
+  console.log(`[Dashboard] Rendering check: AuthLoading: ${authLoading}, LoadingData: ${loadingData}, User: ${user?.id}`);
+
   // Show loading indicator based on auth loading OR dashboard data loading
   if (authLoading || loadingData) {
+    console.log("[Dashboard] Rendering: Loading Indicator");
     return <div className="flex justify-center items-center min-h-screen">Loading dashboard...</div>;
   }
 
   // If auth is loaded but there's no user (e.g., after logout before redirect)
+  // This condition might be hit briefly after logout before ProtectedRoute redirects.
   if (!user) {
+     console.log("[Dashboard] Rendering: Not Logged In Message");
      // Or redirect logic could be handled in App.tsx/ProtectedRoute
      return <div className="flex justify-center items-center min-h-screen">Not logged in.</div>;
   }
 
   // Determine the current role for the selected tenant
   const tenantRole = memberships.find(m => m.tenant_id === selectedTenantId)?.role;
+  console.log(`[Dashboard] Determined tenantRole: ${tenantRole} for selectedTenantId: ${selectedTenantId}`);
 
   // Prepare context for Outlet
   const outletContextValue: DashboardOutletContext = {
@@ -133,8 +161,10 @@ const Dashboard: React.FC = () => {
     // platformStats,
     // tenantStats,
   };
+  console.log("[Dashboard] Prepared Outlet context:", outletContextValue);
 
 
+  console.log("[Dashboard] Rendering: Main Layout");
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar now relies on AuthContext directly */}
@@ -187,7 +217,5 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-// Removed the problematic block comment that contained the DashboardOverview example
 
 export default Dashboard;

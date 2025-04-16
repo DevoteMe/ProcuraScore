@@ -37,13 +37,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchExtraUserDetails = async (userId: string) => {
     // Placeholder: Fetch full_name, avatar_url etc. from 'profiles' if needed
     // For now, just set basic details.
-    console.log("Fetching extra user details for:", userId);
+    console.log("[AuthContext] Fetching extra user details for:", userId);
     // Example: const { data, error } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', userId).single();
     setUserDetails({ id: userId }); // Set minimal details
   };
 
   // Function to update auth state including isPlatformAdmin
   const updateAuthState = async (currentSession: Session | null) => {
+    console.log("[AuthContext] updateAuthState called with session:", currentSession ? 'Exists' : 'None');
     setSession(currentSession);
     const currentUser = currentSession?.user ?? null;
     setUser(currentUser);
@@ -51,55 +52,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Determine Platform Admin status directly from session
     const isAdmin = currentUser?.app_metadata?.claims_admin === true;
     setIsPlatformAdmin(isAdmin);
-    console.log(`Auth state updated. User: ${currentUser?.id}, IsAdmin: ${isAdmin}`); // Log admin status
+    console.log(`[AuthContext] Auth state updated. User: ${currentUser?.id}, IsAdmin: ${isAdmin}`); // Log admin status
 
     if (currentUser) {
       await fetchExtraUserDetails(currentUser.id); // Fetch other details if needed
     } else {
       setUserDetails(null); // Clear details on logout
+      console.log("[AuthContext] User details cleared.");
     }
   };
 
   useEffect(() => {
     setLoading(true);
-    console.log("AuthContext useEffect triggered - Initial Load");
+    console.log("[AuthContext] useEffect triggered - Initial Load");
     supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
-      console.log("Initial session fetched:", initialSession ? 'Exists' : 'None');
+      console.log("[AuthContext] Initial session fetched:", initialSession ? 'Exists' : 'None');
       await updateAuthState(initialSession); // Update state based on initial session
+      console.log("[AuthContext] Initial updateAuthState complete.");
     }).catch(error => {
-      console.error("Error getting initial session:", error);
+      console.error("[AuthContext] Error getting initial session:", error);
       updateAuthState(null); // Ensure state is cleared on error
     }).finally(() => {
       setLoading(false);
-      console.log("Initial session processing complete, loading set to false");
+      console.log("[AuthContext] Initial session processing complete, loading set to false.");
     });
 
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
-        console.log("Auth State Change Event:", _event, newSession ? 'New Session' : 'No Session');
+        console.log("[AuthContext] onAuthStateChange Event:", _event, newSession ? 'New Session' : 'No Session');
         setLoading(true); // Set loading during transition
+        console.log("[AuthContext] onAuthStateChange: setLoading(true)");
         await updateAuthState(newSession); // Update state based on new session
         setLoading(false); // Unset loading after update
-        console.log("Auth state change processing complete, loading set to false");
+        // Log the state *after* it's been updated and loading is set to false
+        console.log(`[AuthContext] onAuthStateChange: updateAuthState complete. Final state - Loading: ${loading}, Session: ${session ? 'Exists' : 'None'}, User: ${user?.id}, IsAdmin: ${isPlatformAdmin}`);
+        console.log("[AuthContext] onAuthStateChange: setLoading(false)");
       }
     );
 
     // Cleanup listener on unmount
     return () => {
       authListener?.subscription.unsubscribe();
-      console.log("AuthContext useEffect cleanup");
+      console.log("[AuthContext] useEffect cleanup - Unsubscribed from auth changes.");
     };
   }, []); // Run only once on mount
 
   const signOut = async () => {
-    console.log("signOut function called"); // ADDED LOG
-    await supabase.auth.signOut();
+    console.log("[AuthContext] signOut function called"); // Log before calling Supabase
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error("[AuthContext] Error signing out:", error);
+        } else {
+            console.log("[AuthContext] supabase.auth.signOut() successful (listener should handle state update)");
+        }
+    } catch (error) {
+        console.error("[AuthContext] Exception during signOut:", error);
+    }
     // No need to manually set state here, onAuthStateChange will trigger updateAuthState(null)
-    // setSession(null);
-    // setUser(null);
-    // setUserDetails(null);
-    // setIsPlatformAdmin(false);
   };
 
   const value = {
@@ -111,7 +122,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
   };
 
-  // Render children only when loading is false to prevent flicker or showing outdated state
+  // Log context value right before providing it
+  // console.log("[AuthContext] Providing context value:", value);
+
+  // Render children only when loading is false? Let's reconsider this.
+  // It might be better to let ProtectedRoute handle the loading state display.
+  // If we keep this, a brief flash of loading might occur even if ProtectedRoute also shows loading.
+  // Let's allow children to render even during loading, ProtectedRoute will gate access.
   return (
     <AuthContext.Provider value={value}>
       {children}
