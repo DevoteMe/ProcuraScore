@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Users, Settings, ShieldCheck, Building, UserCog } from 'lucide-react'; // Added icons
+import { Home, FolderKanban, Users, Settings, ShieldCheck, UserCog } from 'lucide-react'; // Removed Building icon as it wasn't used
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
@@ -9,11 +9,12 @@ const inactiveLinkClasses = "text-muted-foreground hover:bg-muted hover:text-for
 const activeLinkClasses = "bg-primary text-primary-foreground"; // Use primary color for active link
 
 const Sidebar: React.FC = () => {
-  const { userDetails } = useAuth(); // Get user details to check roles
+  // Get user details and admin status directly from AuthContext
+  const { userDetails, isPlatformAdmin } = useAuth();
 
-  // Determine roles - adjust based on your actual role storage
-  const isPlatformAdmin = userDetails?.roles?.includes('Platform_Admin');
-  // Example: Check if user is an admin of *any* tenant listed in their memberships
+  // Determine if the user is an admin of *any* tenant they belong to
+  // Note: This relies on tenant_memberships being populated in userDetails
+  // Ensure fetchExtraUserDetails or similar populates this if needed.
   const isTenantAdmin = userDetails?.tenant_memberships?.some(m => m.role.includes('_admin'));
 
   return (
@@ -33,24 +34,30 @@ const Sidebar: React.FC = () => {
           Overview
         </NavLink>
 
-        {/* Tenant User/Admin Routes */}
-        <NavLink
-          to="/dashboard/projects"
-          className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
-        >
-          <FolderKanban className="mr-3 h-5 w-5" />
-          Projects
-        </NavLink>
-        <NavLink
-          to="/dashboard/evaluations"
-          className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
-        >
-          <ShieldCheck className="mr-3 h-5 w-5" />
-          Evaluations
-        </NavLink>
+        {/* Tenant User/Admin Routes (Show if NOT Platform Admin or if Platform Admin has tenant memberships) */}
+        {/* Adjust logic if Platform Admins should *never* see tenant routes */}
+        {(!isPlatformAdmin || (isPlatformAdmin && userDetails?.tenant_memberships && userDetails.tenant_memberships.length > 0)) && (
+          <>
+            <NavLink
+              to="/dashboard/projects"
+              className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+            >
+              <FolderKanban className="mr-3 h-5 w-5" />
+              Projects
+            </NavLink>
+            <NavLink
+              to="/dashboard/evaluations"
+              className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
+            >
+              <ShieldCheck className="mr-3 h-5 w-5" />
+              Evaluations
+            </NavLink>
+          </>
+        )}
+
 
         {/* Tenant Admin Specific Routes */}
-        {isTenantAdmin && (
+        {isTenantAdmin && !isPlatformAdmin && ( // Show only if Tenant Admin and NOT Platform Admin
           <>
             <NavLink
               to="/dashboard/team"
@@ -70,9 +77,9 @@ const Sidebar: React.FC = () => {
         )}
 
         {/* Platform Admin Specific Routes */}
-        {isPlatformAdmin && ( // CHECK THIS CONDITION
+        {isPlatformAdmin && ( // Use the isPlatformAdmin flag from context
           <NavLink
-            to="/dashboard/admin"
+            to="/dashboard/admin" // Link to the admin panel route
             className={({ isActive }) => clsx(commonLinkClasses, isActive ? activeLinkClasses : inactiveLinkClasses)}
           >
             <UserCog className="mr-3 h-5 w-5" />
